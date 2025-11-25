@@ -1,34 +1,32 @@
-import { GoogleGenAI } from "@google/genai";
-import { FESTIVAL_CONTEXT } from '../constants';
+// services/geminiService.ts
 
-const apiKey = process.env.API_KEY || '';
+export async function generateResponse(prompt: string): Promise<string> {
+  try {
+    const res = await fetch("/api/gemini", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ prompt }),
+    });
 
-// Safely initialize the AI client
-let ai: GoogleGenAI | null = null;
-if (apiKey) {
-    ai = new GoogleGenAI({ apiKey });
-} else {
-    console.warn("API_KEY is missing. AI features will not work.");
+    if (!res.ok) {
+      console.error("Gemini API returned non-OK status:", res.status);
+      return "Xin lỗi, hiện tôi đang gặp lỗi khi kết nối tới AI. Bạn vui lòng thử lại sau nhé.";
+    }
+
+    const data = await res.json();
+
+    if (typeof data.text === "string" && data.text.trim().length > 0) {
+      return data.text;
+    } else if (data.error) {
+      console.error("Gemini API error:", data.error);
+      return "Xin lỗi, đã xảy ra lỗi khi xử lý yêu cầu. Bạn thử hỏi lại theo cách khác giúp tôi nhé.";
+    }
+
+    return "Xin lỗi, tôi không nhận được câu trả lời từ AI.";
+  } catch (err) {
+    console.error("Network or parsing error when calling /api/gemini:", err);
+    return "Xin lỗi, có lỗi kết nối khi gọi tới AI. Bạn kiểm tra lại mạng hoặc thử lại sau nhé.";
+  }
 }
-
-export const generateResponse = async (userMessage: string): Promise<string> => {
-    if (!ai) {
-        return "Xin lỗi, tôi chưa được kết nối với hệ thống AI (Thiếu API Key).";
-    }
-
-    try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: userMessage,
-            config: {
-                systemInstruction: FESTIVAL_CONTEXT,
-                temperature: 0.7,
-            }
-        });
-
-        return response.text || "Xin lỗi, tôi không thể trả lời câu hỏi này lúc này.";
-    } catch (error) {
-        console.error("Gemini API Error:", error);
-        return "Đã xảy ra lỗi khi kết nối với máy chủ AI. Vui lòng thử lại.";
-    }
-};
