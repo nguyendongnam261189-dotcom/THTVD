@@ -1,5 +1,8 @@
 // services/geminiService.ts
 
+// Hàm này được App.tsx import và dùng như sau:
+// const response = await generateResponse(userMsg);
+
 export async function generateResponse(prompt: string): Promise<string> {
   try {
     const res = await fetch("/api/gemini", {
