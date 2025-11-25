@@ -9,6 +9,11 @@ export default async function handler(req: any, res: any) {
   try {
     const { prompt } = req.body || {};
 
+    if (!prompt || typeof prompt !== "string") {
+      res.status(400).json({ error: "Missing or invalid 'prompt'" });
+      return;
+    }
+
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       res.status(500).json({ error: "Missing GEMINI_API_KEY" });
@@ -16,16 +21,14 @@ export default async function handler(req: any, res: any) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-    });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const result = await model.generateContent(prompt);
     const text = result.response.text();
 
     res.status(200).json({ text });
   } catch (err: any) {
+    console.error("Error calling Gemini:", err);
     res.status(500).json({
       error: err?.message ?? "Unknown server error",
     });
