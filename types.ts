@@ -1,10 +1,12 @@
 export interface Project {
     id: string;
     title: string;
-    category: 'STEM' | 'Robotics' | 'Software' | 'IoT';
+    category: 'Environment' | 'Technology' | 'IT' | 'Math';
     description: string;
     imageUrl: string;
     authors: string;
+    videoUrl?: string;
+    demoUrl?: string;
 }
 
 export interface ScheduleItem {
