@@ -1,15 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppView, Project } from './types';
 import { SCHOOL_NAME, BOOTH_NUMBER, PROJECTS, SCHEDULE } from './constants';
 import Background from './components/Background';
 import Navigation from './components/Navigation';
 import ProjectCard from './components/ProjectCard';
 import { generateResponse } from './services/geminiService';
-import { Mic, Send, Bot, Clock, MapPin, X, Award, ChevronRight } from 'lucide-react';
+import { Mic, Send, Bot, Clock, MapPin, X, Award, ChevronRight, AlertCircle, Play, ExternalLink, Filter } from 'lucide-react';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.HOME);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [filterCategory, setFilterCategory] = useState<string>('All');
+  
+  // Iframe State for Demos
+  const [iframeUrl, setIframeUrl] = useState<string | null>(null);
 
   // Chat State
   const [input, setInput] = useState('');
@@ -17,6 +21,24 @@ const App: React.FC = () => {
       {role: 'model', text: `Chào bạn! Tôi là trợ lý ảo của ${SCHOOL_NAME}. Bạn cần tìm hiểu thông tin gì về gian hàng hay các sản phẩm STEM của chúng tôi?`}
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Video State
+  const [videoError, setVideoError] = useState(false);
+  const [projectVideoError, setProjectVideoError] = useState(false);
+
+  // Reset video error when entering About view
+  useEffect(() => {
+    if (currentView === AppView.ABOUT) {
+        setVideoError(false);
+    }
+  }, [currentView]);
+  
+  // Reset project video error when opening a project
+  useEffect(() => {
+    if (selectedProject) {
+        setProjectVideoError(false);
+    }
+  }, [selectedProject]);
 
   const handleChatSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -85,50 +107,132 @@ const App: React.FC = () => {
     </div>
   );
 
-  const renderGallery = () => (
-    <div className="w-full max-w-6xl mx-auto pt-20 pb-48 px-6 animate-in slide-in-from-right duration-500">
-        <div className="flex items-center justify-between mb-8">
-            <h2 className="text-4xl font-bold text-white">Sản phẩm trưng bày</h2>
-            <span className="text-white/50">{PROJECTS.length} dự án</span>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {PROJECTS.map(project => (
-                <ProjectCard 
-                    key={project.id} 
-                    project={project} 
-                    onClick={() => setSelectedProject(project)}
-                />
-            ))}
-        </div>
-        
-        {/* Project Modal */}
-        {selectedProject && (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedProject(null)}>
-                <div className="bg-slate-900 border border-white/10 w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row" onClick={e => e.stopPropagation()}>
-                    <div className="w-full md:w-1/2 h-64 md:h-auto">
-                        <img src={selectedProject.imageUrl} alt={selectedProject.title} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="p-8 w-full md:w-1/2 flex flex-col">
-                        <div className="flex items-center gap-3 mb-4">
-                            <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-wider">{selectedProject.category}</span>
-                            <span className="text-white/40 text-sm">ID: {selectedProject.id}</span>
-                        </div>
-                        <h2 className="text-3xl font-bold text-white mb-4">{selectedProject.title}</h2>
-                        <p className="text-white/70 text-lg leading-relaxed mb-8 flex-grow">{selectedProject.description}</p>
-                        
-                        <div className="mt-auto pt-6 border-t border-white/10">
-                            <p className="text-sm text-white/40 uppercase tracking-widest mb-1">Thực hiện bởi</p>
-                            <p className="text-lg text-white font-medium">{selectedProject.authors}</p>
-                        </div>
-                        <button onClick={() => setSelectedProject(null)} className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-white/20 rounded-full text-white transition-colors">
-                            <X size={24} />
+  const renderGallery = () => {
+    const categories = ['All', 'Environment', 'Technology', 'IT', 'Math'];
+    const filteredProjects = filterCategory === 'All' 
+        ? PROJECTS 
+        : PROJECTS.filter(p => p.category === filterCategory);
+
+    const getCategoryLabel = (cat: string) => {
+        switch(cat) {
+            case 'All': return 'Tất cả';
+            case 'Environment': return 'Môi trường';
+            case 'Technology': return 'Công nghệ';
+            case 'IT': return 'Tin học';
+            case 'Math': return 'Toán học';
+            default: return cat;
+        }
+    }
+
+    return (
+        <div className="w-full max-w-6xl mx-auto pt-20 pb-48 px-6 animate-in slide-in-from-right duration-500">
+            <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
+                <h2 className="text-4xl font-bold text-white">Sản phẩm trưng bày</h2>
+                
+                {/* Filter Tabs */}
+                <div className="flex bg-white/10 rounded-xl p-1 backdrop-blur-md overflow-x-auto max-w-full">
+                    {categories.map(cat => (
+                        <button
+                            key={cat}
+                            onClick={() => setFilterCategory(cat)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                                filterCategory === cat 
+                                    ? 'bg-primary text-white shadow-lg' 
+                                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                            }`}
+                        >
+                            {getCategoryLabel(cat)}
                         </button>
-                    </div>
+                    ))}
                 </div>
             </div>
-        )}
-    </div>
-  );
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProjects.map(project => (
+                    <ProjectCard 
+                        key={project.id} 
+                        project={project} 
+                        onClick={() => setSelectedProject(project)}
+                    />
+                ))}
+            </div>
+            
+            {/* Project Modal */}
+            {selectedProject && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedProject(null)}>
+                    <div className="bg-slate-900 border border-white/10 w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]" onClick={e => e.stopPropagation()}>
+                        
+                        {/* Video Player Section */}
+                        <div className="w-full md:w-3/5 bg-black relative aspect-video md:aspect-auto">
+                            {selectedProject.videoUrl ? (
+                                !projectVideoError ? (
+                                    <video 
+                                        className="w-full h-full object-contain" 
+                                        controls 
+                                        autoPlay 
+                                        playsInline
+                                        onError={() => setProjectVideoError(true)}
+                                    >
+                                        <source src={selectedProject.videoUrl} type="video/mp4" />
+                                        Your browser does not support the video tag.
+                                    </video>
+                                ) : (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-white/50 bg-slate-800 p-6">
+                                        <AlertCircle size={48} className="mb-2 opacity-50"/>
+                                        <p>Video không khả dụng</p>
+                                    </div>
+                                )
+                            ) : (
+                                <img src={selectedProject.imageUrl} alt={selectedProject.title} className="w-full h-full object-cover opacity-80" />
+                            )}
+                            
+                            {/* Play overlay for image only mode (fallback) */}
+                            {!selectedProject.videoUrl && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-full flex items-center justify-center">
+                                        <Play fill="white" className="text-white ml-1" size={32} />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Info Section */}
+                        <div className="w-full md:w-2/5 p-8 flex flex-col bg-slate-900 overflow-y-auto">
+                            <div className="flex items-center justify-between mb-6">
+                                <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-wider">
+                                    {getCategoryLabel(selectedProject.category)}
+                                </span>
+                                <button onClick={() => setSelectedProject(null)} className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-colors">
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">{selectedProject.title}</h2>
+                            <p className="text-white/70 text-base leading-relaxed mb-6 flex-grow">{selectedProject.description}</p>
+                            
+                            <div className="space-y-4 mt-auto">
+                                <div className="border-t border-white/10 pt-4">
+                                    <p className="text-xs text-white/40 uppercase tracking-widest mb-1">Thực hiện bởi</p>
+                                    <p className="text-base text-white font-medium">{selectedProject.authors}</p>
+                                </div>
+
+                                {selectedProject.demoUrl && (
+                                    <button
+                                        onClick={() => setIframeUrl(selectedProject.demoUrl!)}
+                                        className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-primary/25 hover:-translate-y-1"
+                                    >
+                                        <ExternalLink size={20} />
+                                        Trải nghiệm sản phẩm
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+  };
 
   const renderSchedule = () => (
       <div className="w-full max-w-4xl mx-auto pt-20 pb-48 px-6 animate-in slide-in-from-right duration-500">
@@ -226,32 +330,47 @@ const App: React.FC = () => {
   const renderAbout = () => (
       <div className="w-full max-w-5xl mx-auto pt-20 pb-48 px-6 animate-in slide-in-from-right duration-500 flex flex-col md:flex-row gap-12 items-center">
           <div className="w-full md:w-1/2">
-              <div className="relative aspect-square rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
-                  <img src="https://picsum.photos/800/800?random=10" alt="School Activity" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-dark/80 via-transparent to-transparent">
-                      <div className="absolute bottom-6 left-6 right-6">
-                        <h3 className="text-2xl font-bold text-white mb-1">Chuyển đổi số trong giáo dục</h3>
-                        <p className="text-white/60 text-sm">Hướng tới tương lai 4.0</p>
-                      </div>
-                  </div>
+              <div className="relative aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-black">
+                {!videoError ? (
+                  <video 
+                    className="w-full h-full object-cover" 
+                    controls 
+                    autoPlay 
+                    muted 
+                    loop
+                    playsInline
+                    onError={() => setVideoError(true)}
+                  >
+                      <source src="./intro.mp4" type="video/mp4" />
+                      Your browser does not support the video tag.
+                  </video>
+                ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-800 text-white/50 gap-4 p-6 text-center">
+                        <AlertCircle size={48} className="text-white/20" />
+                        <div>
+                            <p className="font-medium text-white mb-1">Không tìm thấy video</p>
+                            <p className="text-xs">Vui lòng đảm bảo file <code className="bg-black/30 px-1 py-0.5 rounded text-primary">intro.mp4</code> nằm trong thư mục gốc (public) của dự án.</p>
+                        </div>
+                    </div>
+                )}
               </div>
           </div>
           <div className="w-full md:w-1/2 space-y-8">
               <div>
-                  <h2 className="text-4xl font-bold text-white mb-4">Về chúng tôi</h2>
+                  <h2 className="text-4xl font-bold text-white mb-4">Kết quả thực hiện nhiệm vụ <br/><span className="text-primary text-2xl">Năm học 2024 - 2025</span></h2>
                   <p className="text-white/70 text-lg leading-relaxed">
-                      {SCHOOL_NAME} tự hào là đơn vị tiên phong trong việc ứng dụng công nghệ thông tin và chuyển đổi số trong giảng dạy. Tại ngày hội năm nay, chúng tôi mang đến những giải pháp giáo dục sáng tạo, từ mô hình STEM thực tiễn đến các ứng dụng phần mềm quản lý thông minh.
+                      Năm học 2024-2025 khép lại, ghi dấu một chặng đường nỗ lực không ngừng của tập thể {SCHOOL_NAME}. Nhà trường đã đạt được nhiều thành tích xuất sắc trong công tác dạy và học, cũng như các hoạt động phong trào, chuyển đổi số và STEM.
                   </p>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white/5 border border-white/10 p-5 rounded-2xl">
-                      <h4 className="text-3xl font-bold text-primary mb-1">20+</h4>
-                      <p className="text-white/40 text-sm">Sản phẩm STEM</p>
+                      <h4 className="text-3xl font-bold text-primary mb-1">34</h4>
+                      <p className="text-white/40 text-sm">Giải HSG Thành phố</p>
                   </div>
                   <div className="bg-white/5 border border-white/10 p-5 rounded-2xl">
-                      <h4 className="text-3xl font-bold text-accent mb-1">05</h4>
-                      <p className="text-white/40 text-sm">Đội thi Robotics</p>
+                      <h4 className="text-3xl font-bold text-accent mb-1">44</h4>
+                      <p className="text-white/40 text-sm">Giải HSG Cấp Quận</p>
                   </div>
               </div>
 
@@ -278,6 +397,30 @@ const App: React.FC = () => {
         {currentView === AppView.AI_GUIDE && renderAIGuide()}
         {currentView === AppView.ABOUT && renderAbout()}
       </main>
+
+      {/* Iframe Overlay for Product Demos */}
+      {iframeUrl && (
+          <div className="fixed inset-0 z-[70] bg-black flex flex-col animate-in fade-in duration-300">
+              <div className="flex items-center justify-between p-4 bg-slate-900 border-b border-white/10 shrink-0">
+                  <h3 className="text-white font-medium truncate flex-1 pl-2">Trải nghiệm sản phẩm</h3>
+                  <button
+                      onClick={() => setIframeUrl(null)}
+                      className="p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+                  >
+                      <X size={24} />
+                  </button>
+              </div>
+              <div className="flex-1 w-full bg-white relative">
+                   <iframe
+                      src={iframeUrl}
+                      className="w-full h-full border-0"
+                      title="Product Demo"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                   />
+              </div>
+          </div>
+      )}
 
       <Navigation currentView={currentView} onNavigate={setCurrentView} />
     </div>
