@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { AppView, Project } from './types';
 import { SCHOOL_NAME, BOOTH_NUMBER, PROJECTS, SCHEDULE } from './constants';
@@ -6,11 +7,14 @@ import Navigation from './components/Navigation';
 import ProjectCard from './components/ProjectCard';
 import VirtualKeyboard from './components/VirtualKeyboard';
 import { generateResponse } from './services/geminiService';
-import { Mic, Send, Bot, Clock, MapPin, X, Award, ChevronRight, AlertCircle, Play, ExternalLink, Filter, Maximize, Minimize } from 'lucide-react';
+import { Mic, Send, Bot, Clock, MapPin, X, Award, ChevronRight, AlertCircle, Play, ExternalLink, Filter, Maximize, Minimize, BrainCircuit, Box } from 'lucide-react';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.HOME);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  
+  // Filter State
+  const [selectedGroup, setSelectedGroup] = useState<'STEM' | 'AI'>('STEM');
   const [filterCategory, setFilterCategory] = useState<string>('All');
   
   // Iframe State for Demos
@@ -47,7 +51,7 @@ const App: React.FC = () => {
   // Auto-scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, showKeyboard]); // Added showKeyboard to scroll when keyboard opens
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -153,10 +157,20 @@ const App: React.FC = () => {
   );
 
   const renderGallery = () => {
-    const categories = ['All', 'Environment', 'Technology', 'IT', 'Math'];
-    const filteredProjects = filterCategory === 'All' 
-        ? PROJECTS 
-        : PROJECTS.filter(p => p.category === filterCategory);
+    // Determine categories based on the selected group
+    let categories: string[] = ['All'];
+    if (selectedGroup === 'STEM') {
+        categories = ['All', 'Environment', 'Technology', 'IT', 'Math'];
+    } else {
+        categories = ['All', 'Technology', 'IT', 'Math', 'NaturalScience', 'SocialScience'];
+    }
+    
+    // Filter projects: Match Group AND Category
+    const filteredProjects = PROJECTS.filter(p => {
+        const matchGroup = p.group === selectedGroup;
+        const matchCategory = filterCategory === 'All' || p.category === filterCategory;
+        return matchGroup && matchCategory;
+    });
 
     const getCategoryLabel = (cat: string) => {
         switch(cat) {
@@ -165,41 +179,79 @@ const App: React.FC = () => {
             case 'Technology': return 'Công nghệ';
             case 'IT': return 'Tin học';
             case 'Math': return 'Toán học';
+            case 'NaturalScience': return 'KHTN';
+            case 'SocialScience': return 'KHXH';
             default: return cat;
         }
     }
 
     return (
         <div className="w-full max-w-6xl mx-auto pt-20 pb-48 px-6 animate-in slide-in-from-right duration-500">
-            <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
-                <h2 className="text-4xl font-bold text-white">Sản phẩm trưng bày</h2>
+            <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-6">
+                <div className="flex flex-col items-start gap-2">
+                    <h2 className="text-4xl font-bold text-white">Sản phẩm trưng bày</h2>
+                    <p className="text-white/50 text-sm">Khám phá các mô hình sáng tạo và ứng dụng công nghệ</p>
+                </div>
                 
-                {/* Filter Tabs */}
-                <div className="flex bg-white/10 rounded-xl p-1 backdrop-blur-md overflow-x-auto max-w-full">
-                    {categories.map(cat => (
-                        <button
-                            key={cat}
-                            onClick={() => setFilterCategory(cat)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                                filterCategory === cat 
-                                    ? 'bg-primary text-white shadow-lg' 
-                                    : 'text-white/60 hover:text-white hover:bg-white/5'
-                            }`}
-                        >
-                            {getCategoryLabel(cat)}
-                        </button>
-                    ))}
+                {/* Group Switcher (STEM / AI) */}
+                <div className="flex bg-slate-800/80 p-1.5 rounded-xl border border-white/10">
+                    <button
+                        onClick={() => { setSelectedGroup('STEM'); setFilterCategory('All'); }}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-bold transition-all ${
+                            selectedGroup === 'STEM' 
+                                ? 'bg-primary text-white shadow-lg' 
+                                : 'text-white/50 hover:text-white hover:bg-white/5'
+                        }`}
+                    >
+                        <Box size={18} />
+                        Sản phẩm STEM
+                    </button>
+                    <button
+                        onClick={() => { setSelectedGroup('AI'); setFilterCategory('All'); }}
+                         className={`flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-bold transition-all ${
+                            selectedGroup === 'AI' 
+                                ? 'bg-secondary text-white shadow-lg' 
+                                : 'text-white/50 hover:text-white hover:bg-white/5'
+                        }`}
+                    >
+                        <BrainCircuit size={18} />
+                        Ứng dụng AI
+                    </button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProjects.map(project => (
-                    <ProjectCard 
-                        key={project.id} 
-                        project={project} 
-                        onClick={() => setSelectedProject(project)}
-                    />
+            {/* Category Filters */}
+            <div className="flex bg-white/5 rounded-xl p-1 backdrop-blur-md overflow-x-auto max-w-full mb-8 border border-white/5 no-scrollbar">
+                {categories.map(cat => (
+                    <button
+                        key={cat}
+                        onClick={() => setFilterCategory(cat)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                            filterCategory === cat 
+                                ? 'bg-white/20 text-white shadow-sm border border-white/10' 
+                                : 'text-white/60 hover:text-white hover:bg-white/5'
+                        }`}
+                    >
+                        {getCategoryLabel(cat)}
+                    </button>
                 ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProjects.length > 0 ? (
+                    filteredProjects.map(project => (
+                        <ProjectCard 
+                            key={project.id} 
+                            project={project} 
+                            onClick={() => setSelectedProject(project)}
+                        />
+                    ))
+                ) : (
+                    <div className="col-span-full py-20 text-center text-white/30">
+                        <AlertCircle className="mx-auto mb-4 w-12 h-12 opacity-50" />
+                        <p>Không tìm thấy sản phẩm nào trong danh mục này.</p>
+                    </div>
+                )}
             </div>
             
             {/* Project Modal */}
@@ -207,7 +259,7 @@ const App: React.FC = () => {
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedProject(null)}>
                     <div className="bg-slate-900 border border-white/10 w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]" onClick={e => e.stopPropagation()}>
                         
-                        {/* Video Player Section */}
+                        {/* Visual Section: Priority is Video URL if valid, else Image URL */}
                         <div className="w-full md:w-3/5 bg-black relative aspect-video md:aspect-auto">
                             {selectedProject.videoUrl ? (
                                 !projectVideoError ? (
@@ -225,26 +277,20 @@ const App: React.FC = () => {
                                     <div className="absolute inset-0 flex flex-col items-center justify-center text-white/50 bg-slate-800 p-6">
                                         <AlertCircle size={48} className="mb-2 opacity-50"/>
                                         <p>Video không khả dụng</p>
+                                        <p className="text-xs mt-2">Hiển thị ảnh minh họa</p>
+                                        <img src={selectedProject.imageUrl} alt={selectedProject.title} className="absolute inset-0 w-full h-full object-cover opacity-20" />
                                     </div>
                                 )
                             ) : (
-                                <img src={selectedProject.imageUrl} alt={selectedProject.title} className="w-full h-full object-cover opacity-80" />
-                            )}
-                            
-                            {/* Play overlay for image only mode (fallback) */}
-                            {!selectedProject.videoUrl && (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-full flex items-center justify-center">
-                                        <Play fill="white" className="text-white ml-1" size={32} />
-                                    </div>
-                                </div>
+                                /* Default view is Image URL as requested for STEM/AI details */
+                                <img src={selectedProject.imageUrl} alt={selectedProject.title} className="w-full h-full object-cover" />
                             )}
                         </div>
 
                         {/* Info Section */}
                         <div className="w-full md:w-2/5 p-8 flex flex-col bg-slate-900 overflow-y-auto">
                             <div className="flex items-center justify-between mb-6">
-                                <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-wider">
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${selectedProject.group === 'AI' ? 'bg-secondary/20 text-secondary' : 'bg-primary/20 text-primary'}`}>
                                     {getCategoryLabel(selectedProject.category)}
                                 </span>
                                 <button onClick={() => setSelectedProject(null)} className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-colors">
@@ -261,6 +307,7 @@ const App: React.FC = () => {
                                     <p className="text-base text-white font-medium">{selectedProject.authors}</p>
                                 </div>
 
+                                {/* Experience Button - Shows for both STEM and AI if demoUrl exists */}
                                 {selectedProject.demoUrl && (
                                     <button
                                         onClick={() => setIframeUrl(selectedProject.demoUrl!)}
@@ -307,22 +354,24 @@ const App: React.FC = () => {
   );
 
   const renderAIGuide = () => (
-    <div className="w-full max-w-3xl mx-auto pt-20 pb-48 px-6 h-full flex flex-col animate-in slide-in-from-bottom duration-500">
-        <div className="text-center mb-8 shrink-0">
-            <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full mx-auto flex items-center justify-center mb-4 shadow-[0_0_40px_rgba(16,185,129,0.3)]">
-                <Bot size={40} className="text-white" />
+    // Updated: Reduced padding to fit better (pt-20 pb-4)
+    <div className="w-full max-w-3xl mx-auto pt-20 pb-4 px-6 h-full flex flex-col animate-in slide-in-from-bottom duration-500">
+        <div className="text-center mb-6 shrink-0">
+            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full mx-auto flex items-center justify-center mb-3 shadow-[0_0_40px_rgba(16,185,129,0.3)]">
+                <Bot size={32} className="text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-white">Trợ lý Ảo AI</h2>
-            <p className="text-white/50">Hỏi tôi về lịch trình, sản phẩm hoặc thông tin về trường</p>
+            <h2 className="text-2xl font-bold text-white">Trợ lý Ảo AI</h2>
+            <p className="text-white/50 text-sm">Hỏi tôi về lịch trình, sản phẩm hoặc thông tin về trường</p>
         </div>
 
-        <div className={`flex-1 min-h-0 bg-white/5 border border-white/10 rounded-3xl overflow-hidden flex flex-col backdrop-blur-sm transition-all duration-300 ${showKeyboard ? 'mb-[280px] md:mb-[300px]' : ''}`}>
+        {/* Chat area adapts height when keyboard is shown. mb-[420px] ensures input is visible above the 300px keyboard + nav */}
+        <div className={`flex-1 min-h-0 bg-white/5 border border-white/10 rounded-3xl overflow-hidden flex flex-col backdrop-blur-sm transition-all duration-300 ${showKeyboard ? 'mb-[420px]' : 'mb-24'}`}>
             <div className="flex-1 overflow-y-auto p-6 space-y-4" >
                 {messages.map((msg, idx) => (
                     <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[80%] p-4 rounded-2xl ${
+                        <div className={`max-w-[85%] p-4 rounded-2xl ${
                             msg.role === 'user' 
-                                ? 'bg-primary text-white rounded-tr-none' 
+                                ? 'bg-primary text-white rounded-tr-none shadow-md' 
                                 : 'bg-white/10 text-white/90 rounded-tl-none border border-white/5'
                         }`}>
                             {msg.text}
@@ -361,7 +410,7 @@ const App: React.FC = () => {
         </div>
         
         {!showKeyboard && (
-            <div className="mt-4 flex flex-wrap justify-center gap-2 shrink-0">
+            <div className="mt-2 mb-20 flex flex-wrap justify-center gap-2 shrink-0">
                 {["Lịch thi đấu Robotic khi nào?", "Danh sách sản phẩm STEM?", "Giới thiệu trường"].map(suggestion => (
                     <button 
                         key={suggestion} 
