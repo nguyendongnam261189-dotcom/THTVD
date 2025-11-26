@@ -26,7 +26,7 @@ Thông tin về trường THCS Nguyễn Bỉnh Khiêm:
 
 // Updated Sunflower Image - Local Path
 // NOTE: Please place your sunflower image as 'sunflower.png' in the public folder
-const STEM_COVER_IMAGE = "./sunflower.png"; 
+const STEM_COVER_IMAGE = "./public/sunflower.png"; 
 const AI_COVER_IMAGE = "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=600&auto=format&fit=crop"; // AI Abstract Tech
 
 export const PROJECTS: Project[] = [
