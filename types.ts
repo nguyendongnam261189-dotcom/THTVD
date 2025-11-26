@@ -1,8 +1,10 @@
 export interface Project {
     id: string;
     title: string;
-    category: 'Environment' | 'Technology' | 'IT' | 'Math';
+    category: 'Environment' | 'Technology' | 'IT' | 'Math' | 'NaturalScience' | 'SocialScience';
+    group: 'STEM' | 'AI';
     description: string;
+    coverImage: string;
     imageUrl: string;
     authors: string;
     videoUrl?: string;
