@@ -292,7 +292,7 @@ export const PROJECTS: Project[] = [
         group: 'AI',
         description: 'Công cụ phân tích đánh giá, cá nhân hóa lộ trình học tập cho học sinh.',
         coverImage: AI_COVER_IMAGE,
-        imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800&auto=format&fit=crop', // Chart
+        imageUrl: '/images/sunflower.png', // Chart
         authors: 'Nguyễn Đông Nam, Nguyễn Trung',
         demoUrl: 'https://script.google.com/macros/s/AKfycbxTqbV3sx8Hvl9EDvN52xbyU0JCDsunEUj5Apmy3h0Ws7RStiro4ftCNk5NQ-Y1urB1/exec'
     },
