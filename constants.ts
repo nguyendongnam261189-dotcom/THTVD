@@ -184,7 +184,7 @@ export const PROJECTS: Project[] = [
         category: 'SocialScience',
         group: 'AI',
         description: 'Học liệu số hỗ trợ dạy học thông qua video hoạt hình.',
-        coverImage: AI_COVER_IMAGE,
+        coverImage: "/cover14.avif",
         imageUrl: 'https://images.unsplash.com/photo-1626785774573-4b79931434f3?q=80&w=800&auto=format&fit=crop', // Animation
         authors: 'Võ Thị Thu Bình',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/%E1%BB%A9ng-d%E1%BB%A5ng-ai-%C4%91%E1%BB%83-t%E1%BA%A1o-video-ho%E1%BA%A1t-h%C3%ACnh'
@@ -206,7 +206,7 @@ export const PROJECTS: Project[] = [
         category: 'SocialScience',
         group: 'AI',
         description: 'Thiết kế bài giảng học liệu số môn Ngữ Văn sử dụng các công cụ AI.',
-        coverImage: AI_COVER_IMAGE,
+        coverImage: "/cover16.avif",
         imageUrl: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=800&auto=format&fit=crop', // Books
         authors: 'Nguyễn Thị Diệu Hiền',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/%E1%BB%A9ng-d%E1%BB%A5ng-c%C3%A1c-c%C3%B4ng-c%E1%BB%A5-ai-%C4%91%E1%BB%83-thi%E1%BA%BFt-k%E1%BA%BF-b%C3%A0i-gi%E1%BA%A3ng-ng%E1%BB%AF-v%C4%83n-6'
@@ -217,7 +217,7 @@ export const PROJECTS: Project[] = [
         category: 'Technology',
         group: 'AI',
         description: 'Thiết kế bài giảng điện tử sinh động với sự hỗ trợ của AI Voice.',
-        coverImage: AI_COVER_IMAGE,
+        coverImage: "/cover17.avif",
         imageUrl: 'https://images.unsplash.com/photo-1478737270239-2f02b77ac6d5?q=80&w=800&auto=format&fit=crop', // Sound wave
         authors: 'Nguyễn Thị Như Ngọc',
         demoUrl: 'https://www.google.com/search?q=https://sites.google.com/view/stemthcsnguyenbinhkhiem/thi%25E1%25BA%25BFt-k%25E1%25BA%25BF-b%25C3%25A0i-gi%25E1%25BA%25A3ng-c%25C3%25B3-gi%25E1%25BB%258Dng-n%25C3%25B3i-ai-v%25C3%25A0-video-sinh-%25C4%2591i%25E1%25BB%2599ng'
@@ -228,7 +228,7 @@ export const PROJECTS: Project[] = [
         category: 'Math',
         group: 'AI',
         description: 'Học liệu số và xây dựng công cụ kiểm tra đánh giá môn Toán.',
-        coverImage: AI_COVER_IMAGE,
+        coverImage: "/cover18.avif",
         imageUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=800&auto=format&fit=crop', // Math game
         authors: 'Nguyễn Phước Diễm',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/thi%E1%BA%BFt-k%E1%BA%BF-tr%C3%B2-ch%C6%A1i-to%C3%A1n-h%E1%BB%8Dc-b%E1%BA%B1ng-canva-ai-v%C3%A0-chatgpt'
@@ -239,7 +239,7 @@ export const PROJECTS: Project[] = [
         category: 'IT',
         group: 'AI',
         description: 'Hệ thống quản lí lớp học và thống kê kết quả học tập thông minh.',
-        coverImage: AI_COVER_IMAGE,
+        coverImage: "/cover19.avif",
         imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800&auto=format&fit=crop', // Analytics
         authors: 'Phạm Tường Vy',
         demoUrl: 'http://sites.google.com/view/stemthcsnguyenbinhkhiem/thi%E1%BA%BFt-k%E1%BA%BF-h%E1%BB%87-th%E1%BB%91ng-ph%C3%A2n-t%C3%ADch-h%E1%BB%8Dc-l%E1%BB%B1c-b%E1%BA%B1ng-ai'
@@ -250,7 +250,7 @@ export const PROJECTS: Project[] = [
         category: 'SocialScience',
         group: 'AI',
         description: 'Trợ lý học tập thông minh cho học sinh môn Tiếng Anh.',
-        coverImage: AI_COVER_IMAGE,
+        coverImage: "/cover20.avif",
         imageUrl: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=800&auto=format&fit=crop', // English learning
         authors: 'Lê Thanh Nghi',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/%E1%BB%A9ng-d%E1%BB%A5ng-notebooklm-trong-m%C3%B4n-ti%E1%BA%BFng-anh'
@@ -261,7 +261,7 @@ export const PROJECTS: Project[] = [
         category: 'SocialScience',
         group: 'AI',
         description: 'Bài nói và nghe: Kể lại một truyện cổ tích với sự hỗ trợ của AI.',
-        coverImage: AI_COVER_IMAGE,
+        coverImage: "/cover21.avif",
         imageUrl: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=800&auto=format&fit=crop', // Story book
         authors: 'Nguyễn Phạm Minh Nguyệt',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/h%E1%BB%8Dc-k%E1%BB%83-truy%E1%BB%87n-c%C3%B9ng-ai-b%C3%A0i-n%C3%B3i-v%C3%A0-nghe-k%E1%BB%83-l%E1%BA%A1i-m%E1%BB%99t-truy%E1%BB%87n-c%E1%BB%95-t%C3%ADch'
@@ -272,7 +272,7 @@ export const PROJECTS: Project[] = [
         category: 'Technology',
         group: 'AI',
         description: 'Xây dựng và thiết kế bài giảng điện tử hiện đại.',
-        coverImage: AI_COVER_IMAGE,
+        coverImage: "/cover22.avif",
         imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800&auto=format&fit=crop', // Digital code
         authors: 'Dương Thị Mỹ Lệ',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/%E1%BB%A9ng-d%E1%BB%A5ng-c%C3%A1c-c%C3%B4ng-c%E1%BB%A5-ai-trong-x%C3%A2y-d%E1%BB%B1ng-v%C3%A0-thi%E1%BA%BFt-k%E1%BA%BF-b%C3%A0i-gi%E1%BA%A3ng-%C4%91i%E1%BB%87n-t%E1%BB%AD'
@@ -283,7 +283,7 @@ export const PROJECTS: Project[] = [
         category: 'NaturalScience',
         group: 'AI',
         description: 'Trợ lý học tập cho học sinh trong môn Hóa học.',
-        coverImage: AI_COVER_IMAGE,
+        coverImage: "/cover23.avif",
         imageUrl: 'https://images.unsplash.com/photo-1603126857599-f6e157fa2fe6?q=80&w=800&auto=format&fit=crop', // Chemistry
         authors: 'Huỳnh Quốc Khánh',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/periclick-b%E1%BA%A3ng-h%E1%BB%87-th%E1%BB%91ng-tu%E1%BA%A7n-ho%C3%A0n-t%C6%B0%C6%A1ng-t%C3%A1c'
@@ -294,7 +294,7 @@ export const PROJECTS: Project[] = [
         category: 'IT',
         group: 'AI',
         description: 'Công cụ phân tích đánh giá, cá nhân hóa lộ trình học tập cho học sinh.',
-        coverImage: AI_COVER_IMAGE,
+        coverImage: "/cover24.avif",
         imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800&auto=format&fit=crop', // Chart
         authors: 'Nguyễn Đông Nam, Nguyễn Trung',
         demoUrl: 'https://script.google.com/macros/s/AKfycbzqBr83WXuI_dpgbktFNOreNywO4VSpDxOwhQDQVeu6SJc7uKN6xo2RDYpLPw16-1A4/exec'
@@ -305,7 +305,7 @@ export const PROJECTS: Project[] = [
         category: 'NaturalScience',
         group: 'AI',
         description: 'Ứng dụng các công cụ AI trong thiết kế bài giảng điện tử Hóa học.',
-        coverImage: AI_COVER_IMAGE,
+        coverImage: "/cover25.avif",
         imageUrl: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?q=80&w=800&auto=format&fit=crop', // Chemical structure
         authors: 'Hoàng Thị Lệ Thủy',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/%E1%BB%A9ng-d%E1%BB%A5ng-c%C3%A1c-c%C3%B4ng-c%E1%BB%A5-ai-trong-thi%E1%BA%BFt-k%E1%BA%BF-b%C3%A0i-gi%E1%BA%A3ng-%C4%91i%E1%BB%87n-t%E1%BB%AD-b%C3%A0i-26-ethylic-a'
