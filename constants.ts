@@ -195,7 +195,7 @@ export const PROJECTS: Project[] = [
         category: 'Math',
         group: 'AI',
         description: 'Cá nhân hóa học tập thông qua bảo tàng số tương tác.',
-        coverImage: AI_COVER_IMAGE,
+        coverImage: /sunflower.png,
         imageUrl: 'https://images.unsplash.com/photo-1518932945647-7a1c969f8be2?q=80&w=800&auto=format&fit=crop', // Museum
         authors: 'Trần Thiên Ân',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/b%E1%BA%A3o-t%C3%A0ng-s%E1%BB%91-tri%E1%BB%83n-l%C3%A3m-to%C3%A1n-h%E1%BB%8Dc'
