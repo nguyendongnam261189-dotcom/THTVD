@@ -118,7 +118,7 @@ export const PROJECTS: Project[] = [
         group: 'STEM',
         description: 'Hệ thống cảnh báo sớm thiên tai giúp giảm thiểu thiệt hại.',
         coverImage: STEM_COVER_IMAGE,
-        imageUrl:  "/08.png" // Flood/Disaster
+        imageUrl:  "/08.png", // Flood/Disaster
         authors: 'Nguyễn Thị A Kim, Lê Thị Thanh Thương',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/m%C3%B4-h%C3%ACnh-c%E1%BA%A3nh-b%C3%A1o-l%C5%A9-v%C3%A0-s%E1%BA%A1t-l%E1%BB%9F-%C4%91%E1%BA%A5t'
     },
