@@ -7,7 +7,7 @@ import ProjectCard from './components/ProjectCard';
 import { generateResponse } from './services/geminiService';
 import {
   Send, Bot, Clock, MapPin, X, Award, ChevronRight, AlertCircle, ExternalLink,
-  Maximize, Minimize, BrainCircuit, Box, Home
+  Maximize, Minimize, BrainCircuit, Box, Home, Fingerprint
 } from 'lucide-react';
 
 // Thời gian chờ: 30000ms = 30 giây
@@ -42,49 +42,37 @@ const App: React.FC = () => {
   const [isAboutVideoFullscreen, setIsAboutVideoFullscreen] = useState(false);
 
   // --- LOGIC MÀN HÌNH CHỜ (SCREENSAVER) ---
-  const [isIdle, setIsIdle] = useState(true); // Mặc định vào là hiện video ngay
+  const [isIdle, setIsIdle] = useState(true); 
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const resetIdleTimer = () => {
-    // Xóa bộ đếm cũ
     if (idleTimerRef.current) {
       clearTimeout(idleTimerRef.current);
     }
 
-    // Thiết lập bộ đếm mới
     idleTimerRef.current = setTimeout(() => {
       console.log("Hết thời gian chờ, kích hoạt Screensaver...");
-      
-      // 1. Reset về màn hình chính
       setCurrentView(AppView.HOME);
-      
-      // 2. Đóng tất cả các popup/modal/iframe đang mở
       setSelectedProject(null);
       setIframeUrl(null);
       setIsAboutVideoFullscreen(false);
-      
-      // 3. Kích hoạt chế độ nghỉ (Hiện video intro)
       setIsIdle(true);
     }, IDLE_TIMEOUT_MS);
   };
 
-  // Hàm đánh thức màn hình khi đang ở chế độ chờ
   const wakeUp = () => {
     setIsIdle(false);
     resetIdleTimer();
   };
 
-  // Cài đặt bộ lắng nghe sự kiện toàn trang
   useEffect(() => {
     const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
     
-    // Nếu KHÔNG phải đang nghỉ (đang dùng), thì mới kích hoạt bộ đếm lại
     if (!isIdle) {
       resetIdleTimer();
     }
 
     const handleActivity = () => {
-      // Chỉ reset timer khi người dùng đang thao tác bình thường
       if (!isIdle) {
         resetIdleTimer();
       }
@@ -107,7 +95,7 @@ const App: React.FC = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Fullscreen toggle logic
+  // Fullscreen toggle
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -140,25 +128,31 @@ const App: React.FC = () => {
 
   // --- RENDERS ---
 
-  // 1. MÀN HÌNH CHỜ (SCREENSAVER)
+  // 1. MÀN HÌNH CHỜ (SCREENSAVER) - ĐÃ CHỈNH SỬA GIAO DIỆN
   if (isIdle) {
     return (
       <div 
-        className="fixed inset-0 z-[100000] bg-black flex flex-col items-center justify-center cursor-pointer animate-in fade-in duration-1000"
-        onClick={wakeUp} // Chạm vào bất cứ đâu để đánh thức
+        className="fixed inset-0 z-[100000] bg-black flex flex-col items-center justify-center cursor-pointer animate-in fade-in duration-1000 group"
+        onClick={wakeUp}
       >
         <video
           src="/intro.mp4"
           className="absolute inset-0 w-full h-full object-cover"
           autoPlay
           loop
-          // Đã xóa thuộc tính 'muted' để video có tiếng
           playsInline
         />
-        <div className="absolute inset-0 bg-black/30" /> 
+        {/* Lớp phủ mờ nhẹ hơn (10%) */}
+        <div className="absolute inset-0 bg-black/10" /> 
         
-        <div className="absolute bottom-24 animate-bounce bg-white/10 backdrop-blur-md border border-white/20 px-8 py-4 rounded-full text-white font-bold text-xl uppercase tracking-widest shadow-2xl">
-          Chạm vào màn hình để bắt đầu trải nghiệm
+        {/* Nút bấm mới: Có biểu tượng vân tay số */}
+        <div className="absolute bottom-24 flex flex-col items-center gap-3 animate-bounce">
+          <div className="p-4 rounded-full bg-primary/20 backdrop-blur-md border border-primary/50 text-white shadow-[0_0_30px_rgba(14,165,233,0.6)] group-hover:scale-110 transition-transform duration-300">
+             <Fingerprint size={48} className="animate-pulse" />
+          </div>
+          <div className="bg-black/30 backdrop-blur-md border border-white/10 px-6 py-2 rounded-full text-white/90 font-bold text-sm uppercase tracking-[0.2em] shadow-xl">
+            Chạm màn hình để bắt đầu
+          </div>
         </div>
       </div>
     );
