@@ -40,7 +40,7 @@ export const PROJECTS: Project[] = [
         category: 'Environment',
         group: 'STEM',
         description: 'Mô hình bản đồ tương tác giúp tìm hiểu địa lý và môi trường Việt Nam.',
-        coverImage: STEM_COVER_IMAGE,
+        coverImage: "/01.png", // Map illustration
         imageUrl: "/01.png", // Map illustration
         authors: 'Nguyễn Thị Diệu Hiền, Phan Thị Ngọc Lý',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/b%E1%BA%A3n-%C4%91%E1%BB%93-vi%E1%BB%87t-nam-th%C3%B4ng-minh-smartmap-34'
@@ -51,7 +51,7 @@ export const PROJECTS: Project[] = [
         category: 'Environment',
         group: 'STEM',
         description: 'Mô hình năng lượng tái tạo tích hợp AI, tối ưu hóa việc sử dụng năng lượng sạch.',
-        coverImage: STEM_COVER_IMAGE,
+        coverImage: "/02.png", // Renewable energy
         imageUrl:  "/02.png", // Renewable energy
         authors: 'Phạm Kiều Oanh, Dương Thị Mỹ Lệ',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/renewable-energy-usage-model-m%C3%B4-h%C3%ACnh-n%C4%83ng-l%C6%B0%E1%BB%A3ng-t%C3%A1i-t%E1%BA%A1o-t%C3%ADch-h%E1%BB%A3p-ai'
@@ -62,7 +62,7 @@ export const PROJECTS: Project[] = [
         category: 'IT',
         group: 'STEM',
         description: 'Hệ thống giám sát và điều khiển chất lượng môi trường, phòng chống cháy nổ sử dụng IOT và CHATBOT.',
-        coverImage: STEM_COVER_IMAGE,
+        coverImage: "/03.png", // IoT
         imageUrl:  "/03.png", // IoT
         authors: 'Nguyễn Thị Thu Lợi',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/h%E1%BB%87-th%E1%BB%91ng-gi%C3%A1m-s%C3%A1t-v%C3%A0-%C4%91i%E1%BB%81u-khi%E1%BB%83n-ch%E1%BA%A5t-l%C6%B0%E1%BB%A3ng-m%C3%B4i-tr%C6%B0%E1%BB%9Dng-ph%C3%B2ng-ch%E1%BB%91ng-ch%C3%A1y-n%E1%BB%95'
@@ -73,7 +73,7 @@ export const PROJECTS: Project[] = [
         category: 'Technology',
         group: 'STEM',
         description: 'Mô hình thể hiện sự phát triển đô thị bền vững của Đà Nẵng.',
-        coverImage: STEM_COVER_IMAGE,
+        coverImage: "/04.png", // Danang/City
         imageUrl:  "/04.png", // Danang/City
         authors: 'Nguyễn Thị Hoài Thi, Trần Nguyễn Huyền Trang',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/d%E1%BB%B1-%C3%A1n-%C4%91%C3%A0-n%E1%BA%B5ng-k%E1%BA%BF-th%E1%BB%ABa-v%C3%A0-ph%C3%A1t-tri%E1%BB%83n'
@@ -84,7 +84,7 @@ export const PROJECTS: Project[] = [
         category: 'Environment',
         group: 'STEM',
         description: 'Mô hình nuôi trồng nấm bào ngư tận dụng phế phẩm nông nghiệp, bảo vệ môi trường.',
-        coverImage: STEM_COVER_IMAGE,
+        coverImage: "/05.png", // Mushrooms
         imageUrl:  "/05.png", // Mushrooms
         authors: 'Nguyễn Thị Yến, Lê Thị Nết',
         demoUrl: 'https://www.google.com/search?q=https://sites.google.com/view/stemthcsnguyenbinhkhiem/n%25E1%25BA%25A5m-b%25C3%25A%C3%A0o-ng%25C6%25B0-t%25C3%25A%C3%A1i-sinh'
@@ -95,7 +95,7 @@ export const PROJECTS: Project[] = [
         category: 'Technology',
         group: 'STEM',
         description: 'Hệ thống chăm sóc cây tự động sử dụng công nghệ cảm biến.',
-        coverImage: STEM_COVER_IMAGE,
+        coverImage: "/06.png", // Smart garden
         imageUrl:  "/06.png", // Smart garden
         authors: 'Hoàng Thị Sương',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/v%C6%B0%E1%BB%9Dn-th%C3%B4ng-minh'
@@ -106,7 +106,7 @@ export const PROJECTS: Project[] = [
         category: 'Technology',
         group: 'STEM',
         description: 'Hộp bút tích hợp các tính năng công nghệ hỗ trợ học tập.',
-        coverImage: STEM_COVER_IMAGE,
+        coverImage: "/07.png", // Stationary
         imageUrl:  "/07.png", // Stationary
         authors: 'Hoàng Thị Sương',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/h%E1%BB%99p-b%C3%BAt-th%C3%B4ng-minh'
@@ -117,7 +117,7 @@ export const PROJECTS: Project[] = [
         category: 'Technology',
         group: 'STEM',
         description: 'Hệ thống cảnh báo sớm thiên tai giúp giảm thiểu thiệt hại.',
-        coverImage: STEM_COVER_IMAGE,
+        coverImage:"/08.png", // Flood/Disaster
         imageUrl:  "/08.png", // Flood/Disaster
         authors: 'Nguyễn Thị A Kim, Lê Thị Thanh Thương',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/m%C3%B4-h%C3%ACnh-c%E1%BA%A3nh-b%C3%A1o-l%C5%A9-v%C3%A0-s%E1%BA%A1t-l%E1%BB%9F-%C4%91%E1%BA%A5t'
@@ -128,7 +128,7 @@ export const PROJECTS: Project[] = [
         category: 'IT',
         group: 'STEM',
         description: 'Bảng trắc nghiệm Tiếng Anh thông minh tích hợp AI.',
-        coverImage: STEM_COVER_IMAGE,
+        coverImage: "/09.png", // Smart board
         imageUrl:  "/09.png", // Smart board
         authors: 'Phạm Kiều Oanh, Dương Thị Mỹ Lệ',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/testing-smart-board-b%E1%BA%A3ng-tr%E1%BA%AFc-nghi%E1%BB%87m-ti%E1%BA%BFng-anh-th%C3%B4ng-minh-t%C3%ADch-h%E1%BB%A3p-ai'
@@ -139,7 +139,7 @@ export const PROJECTS: Project[] = [
         category: 'IT',
         group: 'STEM',
         description: 'Website thư viện học liệu số và tương tác liên môn.',
-        coverImage: STEM_COVER_IMAGE,
+        coverImage:  "/10.png", // Library
         imageUrl:  "/10.png", // Library
         authors: 'Huỳnh Quốc Khánh',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/website-th%C6%B0-vi%E1%BB%87n-h%E1%BB%8Dc-li%E1%BB%87u-s%E1%BB%91-v%C3%A0-t%C6%B0%C6%A1ng-t%C3%A1c-li%C3%AAn-m%C3%B4n'
@@ -150,7 +150,7 @@ export const PROJECTS: Project[] = [
         category: 'IT',
         group: 'STEM',
         description: 'Ứng dụng xử lý hình ảnh và máy chiếu để chuyển bảng thường thành bảng tương tác thông minh.',
-        coverImage: STEM_COVER_IMAGE,
+        coverImage: "/11.png", // Vision
         imageUrl:  "/11.png", // Vision
         authors: 'Trịnh Hoàng Sơn',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/vision-control-%E1%BB%A9ng-d%E1%BB%A5ng-x%E1%BB%AD-l%C3%BD-h%C3%ACnh-%E1%BA%A3nh-v%C3%A0-m%C3%A1y-chi%E1%BA%BFu-%C4%91%E1%BB%83-chuy%E1%BB%83n-b%E1%BA%A3ng-th%C6%B0%E1%BB%9Dng'
@@ -161,7 +161,7 @@ export const PROJECTS: Project[] = [
         category: 'Math',
         group: 'STEM',
         description: 'Mô hình công viên tích hợp các kiến thức toán học trực quan.',
-        coverImage: STEM_COVER_IMAGE,
+        coverImage: "/12.png", // Math park
         imageUrl:  "/12.png", // Math park
         authors: 'Nguyễn Thị Vân',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/c%C3%B4ng-vi%C3%AAn-to%C3%A1n-h%E1%BB%8Dc'
@@ -172,7 +172,7 @@ export const PROJECTS: Project[] = [
         category: 'Math',
         group: 'STEM',
         description: 'Vẽ hoa văn toán học Spirograph – Nghệ thuật từ chuyển động đều.',
-        coverImage: STEM_COVER_IMAGE,
+        coverImage: "/13.png", // Spiral art
         imageUrl:  "/13.png", // Spiral art
         authors: 'Trần Thiên Ân, Nguyễn Đức Khôi',
         demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/spiralart-v%E1%BA%BD-hoa-v%C4%83n-to%C3%A1n-h%E1%BB%8Dc-spirograph-ngh%E1%BB%87-thu%E1%BA%ADt-t%E1%BB%AB-chuy%E1%BB%83n-%C4%91%E1%BB%99ng-%C4%91%E1%BB%81u'
