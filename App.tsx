@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { AppView, Project } from './types';
 import { SCHOOL_NAME, BOOTH_NUMBER, PROJECTS, SCHEDULE } from './constants';
 import Background from './components/Background';
@@ -10,6 +10,7 @@ import {
   Maximize, Minimize, BrainCircuit, Box, Home, Fingerprint, Scan, Smartphone, Wifi
 } from 'lucide-react';
 
+// Thời gian chờ: 30000ms = 30 giây
 const IDLE_TIMEOUT_MS = 30000; 
 
 const App: React.FC = () => {
@@ -30,38 +31,71 @@ const App: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAboutVideoFullscreen, setIsAboutVideoFullscreen] = useState(false);
 
-  // --- LOGIC MÀN HÌNH CHỜ ---
+  // --- LOGIC MÀN HÌNH CHỜ (SCREENSAVER) ĐÃ TỐI ƯU ---
   const [isIdle, setIsIdle] = useState(true); 
-  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const resetIdleTimer = () => {
-    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    idleTimerRef.current = setTimeout(() => {
-      console.log("Hết thời gian chờ, kích hoạt Screensaver...");
-      setCurrentView(AppView.HOME);
-      setSelectedProject(null);
-      setIframeUrl(null);
-      setIsAboutVideoFullscreen(false);
-      setIsIdle(true);
-    }, IDLE_TIMEOUT_MS);
-  };
+  // Hàm này sẽ được gọi mỗi khi người dùng có thao tác
+  const resetIdleTimer = useCallback(() => {
+    // 1. Hủy bộ đếm cũ ngay lập tức (quan trọng)
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
 
-  const wakeUp = () => {
-    setIsIdle(false);
-    resetIdleTimer();
-  };
-
-  useEffect(() => {
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-    if (!isIdle) resetIdleTimer();
-    const handleActivity = () => { if (!isIdle) resetIdleTimer(); };
-    events.forEach(event => document.addEventListener(event, handleActivity));
-    return () => {
-      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-      events.forEach(event => document.removeEventListener(event, handleActivity));
-    };
+    // 2. Nếu đang ở màn hình chờ (video đang chạy), không làm gì cả (để hàm wakeUp lo)
+    //    Nếu đang dùng bình thường (!isIdle), thì đặt lại bộ đếm mới
+    if (!isIdle) {
+      timerRef.current = setTimeout(() => {
+        console.log("--> Đã hết 30s không thao tác. Kích hoạt Screensaver.");
+        
+        // Reset mọi trạng thái về mặc định trước khi hiện video
+        setCurrentView(AppView.HOME);
+        setSelectedProject(null);
+        setIframeUrl(null);
+        setIsAboutVideoFullscreen(false);
+        
+        // Bật màn hình chờ
+        setIsIdle(true);
+      }, IDLE_TIMEOUT_MS);
+    }
   }, [isIdle]);
 
+  // Hàm đánh thức: Chỉ chạy khi click vào màn hình chờ
+  const wakeUp = () => {
+    console.log("--> Đánh thức màn hình!");
+    setIsIdle(false);
+    // Ngay khi đánh thức, timer sẽ được reset bởi useEffect bên dưới
+  };
+
+  // Lắng nghe sự kiện toàn cục
+  useEffect(() => {
+    // Danh sách các sự kiện cần bắt
+    const events = [
+      'mousedown', 'mousemove', 'click', 
+      'touchstart', 'touchmove', 
+      'keydown', 'scroll', 'wheel'
+    ];
+    
+    // Khởi động timer lần đầu tiên nếu đang không nghỉ
+    if (!isIdle) {
+      resetIdleTimer();
+    }
+
+    // Gắn sự kiện vào window (toàn bộ cửa sổ)
+    events.forEach(event => {
+      window.addEventListener(event, resetIdleTimer);
+    });
+
+    // Dọn dẹp khi unmount hoặc isIdle thay đổi
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      events.forEach(event => {
+        window.removeEventListener(event, resetIdleTimer);
+      });
+    };
+  }, [isIdle, resetIdleTimer]);
+
+  // --- CÁC HIỆU ỨNG KHÁC ---
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   useEffect(() => {
@@ -91,11 +125,12 @@ const App: React.FC = () => {
   };
 
   const isGoogleSite = (url: string) => {
-    // Kiểm tra xem link có phải là Google Sites hoặc các trang bảo mật cao khác không
     return url.includes('sites.google.com') || url.includes('canva.com') || url.includes('drive.google.com');
   };
 
   // --- RENDERS ---
+  
+  // 1. MÀN HÌNH CHỜ (SCREENSAVER)
   if (isIdle) {
     return (
       <div 
@@ -116,6 +151,7 @@ const App: React.FC = () => {
     );
   }
 
+  // 2. GIAO DIỆN CHÍNH
   const renderHome = () => (
     <div className="flex flex-col items-center justify-center min-h-full py-20 px-4 text-center animate-in fade-in zoom-in duration-500">
       <div className="mb-6 inline-flex items-center justify-center p-3 rounded-full bg-primary/20 border border-primary/50 animate-bounce">
