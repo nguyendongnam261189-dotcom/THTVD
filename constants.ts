@@ -28,7 +28,7 @@ Thông tin về trường THCS Nguyễn Bỉnh Khiêm:
 // 1. Tải ảnh hoa hướng dương của bạn lên thư mục 'public' và đổi tên thành 'sunflower.png'
 // 2. Tải ảnh đại diện AI của bạn lên thư mục 'public' và đổi tên thành 'ai.png'
 
-const STEM_COVER_IMAGE = "/sunflower.jpg";
+const STEM_COVER_IMAGE = "/sunflower.png";
 const AI_COVER_IMAGE = "/ai.png";
 
 
