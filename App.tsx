@@ -85,7 +85,6 @@ const App: React.FC = () => {
 
     const handleActivity = () => {
       // Chỉ reset timer khi người dùng đang thao tác bình thường
-      // Nếu đang isIdle=true, ta không làm gì ở đây cả (để hàm wakeUp ở div video xử lý)
       if (!isIdle) {
         resetIdleTimer();
       }
@@ -101,7 +100,7 @@ const App: React.FC = () => {
         document.removeEventListener(event, handleActivity);
       });
     };
-  }, [isIdle]); // Quan trọng: useEffect này phụ thuộc vào biến isIdle
+  }, [isIdle]);
 
   // Auto-scroll chat
   useEffect(() => {
@@ -153,7 +152,7 @@ const App: React.FC = () => {
           className="absolute inset-0 w-full h-full object-cover"
           autoPlay
           loop
-          muted 
+          // Đã xóa thuộc tính 'muted' để video có tiếng
           playsInline
         />
         <div className="absolute inset-0 bg-black/30" /> 
