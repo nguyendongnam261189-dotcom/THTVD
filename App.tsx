@@ -31,36 +31,51 @@ const App: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAboutVideoFullscreen, setIsAboutVideoFullscreen] = useState(false);
 
-  // --- TRẠNG THÁI MỚI ---
+  // --- TRẠNG THÁI ---
   const [isIdle, setIsIdle] = useState(true); 
-  const [isUnlocking, setIsUnlocking] = useState(false); // Trạng thái đang chạy hiệu ứng mở khóa
+  const [isUnlocking, setIsUnlocking] = useState(false); 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // --- LOGIC GIỌNG NÓI TRỢ LÝ ẢO ---
+  // --- LOGIC GIỌNG NÓI TRỢ LÝ ẢO (ĐÃ NÂNG CẤP) ---
   const speakWelcome = () => {
-    // Hủy các lệnh nói cũ nếu có
-    window.speechSynthesis.cancel();
+    // Cách 1: Ưu tiên dùng file MP3 chuẩn (nếu thầy đã tải lên public/welcome.mp3)
+    const audio = new Audio('/welcome.mp3');
+    audio.play().catch(() => {
+      // Cách 2: Nếu không có file MP3, dùng giọng Robot của trình duyệt (Fallback)
+      console.log("Không tìm thấy welcome.mp3, dùng giọng máy.");
+      window.speechSynthesis.cancel(); // Dừng các âm thanh cũ
 
-    const text = `Chào mừng bạn đến với Gian hàng Chuyển đổi số của trường Trung học cơ sở Nguyễn Bỉnh Khiêm.`;
-    const utterance = new SpeechSynthesisUtterance(text);
-    
-    // Cấu hình giọng nói (Tiếng Việt)
-    utterance.lang = 'vi-VN'; 
-    utterance.rate = 1.0; // Tốc độ nói
-    utterance.pitch = 1.1; // Tông giọng cao hơn xíu cho giống robot
+      // Câu nói ngắn gọn hơn để kịp thời gian
+      const text = "Hệ thống đã kích hoạt. Chào mừng đến với gian hàng chuyển đổi số.";
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Cố gắng tìm giọng tiếng Việt
+      const voices = window.speechSynthesis.getVoices();
+      const vnVoice = voices.find(v => v.lang.includes('vi'));
+      
+      if (vnVoice) {
+        utterance.voice = vnVoice;
+        utterance.lang = 'vi-VN';
+      }
 
-    // Tìm giọng Google tiếng Việt (nếu có) để hay hơn
-    const voices = window.speechSynthesis.getVoices();
-    const vnVoice = voices.find(v => v.lang.includes('vi'));
-    if (vnVoice) utterance.voice = vnVoice;
+      // Tăng tốc độ đọc lên để không bị chậm (1.4 là khá nhanh)
+      utterance.rate = 1.4; 
+      utterance.pitch = 1.1; // Giọng cao hơn chút cho giống máy
 
-    window.speechSynthesis.speak(utterance);
+      window.speechSynthesis.speak(utterance);
+    });
   };
+
+  // Pre-load giọng nói (Fix lỗi Chrome lần đầu không tìm thấy giọng)
+  useEffect(() => {
+    const loadVoices = () => { window.speechSynthesis.getVoices(); };
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }, []);
 
   const resetIdleTimer = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
-
-    // Chỉ đếm ngược khi ĐANG SỬ DỤNG (không phải idle, không phải đang unlock)
     if (!isIdle && !isUnlocking) {
       timerRef.current = setTimeout(() => {
         console.log("--> Timeout. Kích hoạt Screensaver.");
@@ -73,22 +88,21 @@ const App: React.FC = () => {
     }
   }, [isIdle, isUnlocking]);
 
-  // --- HÀM ĐÁNH THỨC & CHẠY HIỆU ỨNG ---
   const wakeUp = () => {
-    if (isUnlocking) return; // Nếu đang mở khóa thì không làm gì
+    if (isUnlocking) return;
 
     console.log("--> Bắt đầu quy trình mở khóa...");
     setIsIdle(false);
-    setIsUnlocking(true); // Bắt đầu hiệu ứng
+    setIsUnlocking(true); 
 
-    // 1. Phát giọng nói chào mừng
+    // Phát giọng nói
     speakWelcome();
 
-    // 2. Chờ 3.5 giây (để chạy xong hiệu ứng) rồi mới vào trang chủ
+    // Tăng thời gian chờ lên 4 giây (4000ms) để khớp với giọng nói
     setTimeout(() => {
       setIsUnlocking(false);
-      resetIdleTimer(); // Bắt đầu đếm ngược lại từ đầu
-    }, 3500);
+      resetIdleTimer(); 
+    }, 4000);
   };
 
   useEffect(() => {
@@ -155,7 +169,6 @@ const App: React.FC = () => {
         <div className="absolute bottom-24 flex flex-col items-center gap-3 animate-bounce z-10">
           <div className="p-5 rounded-full bg-black/40 backdrop-blur-xl border border-primary text-primary shadow-[0_0_50px_rgba(14,165,233,0.5)] group-hover:scale-110 transition-transform duration-300 relative overflow-hidden">
              <Fingerprint size={64} className="animate-pulse" />
-             {/* Hiệu ứng tia quét qua vân tay */}
              <div className="absolute top-0 left-0 w-full h-1 bg-white/50 blur-sm animate-[bounce_1.5s_infinite]" />
           </div>
           <div className="bg-black/50 backdrop-blur-md border border-white/20 px-8 py-3 rounded-full text-white font-bold text-sm uppercase tracking-[0.3em] shadow-xl">
@@ -176,14 +189,11 @@ const App: React.FC = () => {
         {/* ROBOT HOLOGRAM */}
         <div className="relative mb-8 z-10 animate-in zoom-in duration-500">
           <div className="relative w-40 h-40 flex items-center justify-center">
-            {/* Vòng tròn Hologram */}
             <div className="absolute inset-0 border-4 border-primary rounded-full animate-[spin_3s_linear_infinite] border-t-transparent border-l-transparent" />
             <div className="absolute inset-2 border-2 border-secondary rounded-full animate-[spin_4s_linear_infinite_reverse] border-b-transparent" />
-            
-            {/* Icon Robot */}
             <Bot size={80} className="text-white drop-shadow-[0_0_20px_rgba(14,165,233,1)] animate-pulse" />
           </div>
-          <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-32 h-4 bg-primary/50 blur-xl rounded-[100%]" /> {/* Bóng sáng */}
+          <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-32 h-4 bg-primary/50 blur-xl rounded-[100%]" /> 
         </div>
 
         {/* Text Loading Effect */}
@@ -199,14 +209,14 @@ const App: React.FC = () => {
             <div className="flex items-center gap-2 delay-1000 animate-in fade-in fill-mode-forwards opacity-0" style={{animationDelay: '0.5s'}}>
                <Cpu size={16} /> <span>Kết nối máy chủ STEM... <span className="text-green-400 font-bold">OK</span></span>
             </div>
-            <div className="flex items-center gap-2 delay-2000 animate-in fade-in fill-mode-forwards opacity-0" style={{animationDelay: '1s'}}>
+            <div className="flex items-center gap-2 delay-2000 animate-in fade-in fill-mode-forwards opacity-0" style={{animationDelay: '1.5s'}}>
                <Activity size={16} /> <span>Tải dữ liệu chuyển đổi số... <span className="text-green-400 font-bold">100%</span></span>
             </div>
           </div>
 
           {/* Loading Bar */}
           <div className="w-64 h-1 bg-white/20 rounded-full mt-6 overflow-hidden mx-auto">
-             <div className="h-full bg-gradient-to-r from-primary to-secondary w-full animate-[translateX_1.5s_ease-in-out]" />
+             <div className="h-full bg-gradient-to-r from-primary to-secondary w-full animate-[translateX_3s_ease-in-out]" />
           </div>
         </div>
       </div>
@@ -477,7 +487,6 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Chỉ hiện thanh Navigation khi không ở màn hình chờ và không mở khóa */}
       {!isIdle && !isUnlocking && (
          <Navigation currentView={currentView} onNavigate={setCurrentView} />
       )}
