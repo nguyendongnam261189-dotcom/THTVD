@@ -1,19 +1,27 @@
-// services/geminiService.ts
-import { FESTIVAL_CONTEXT, PROJECTS, SCHEDULE } from "../constants";
+import { GoogleGenAI } from "@google/genai";
+import { FESTIVAL_CONTEXT, PROJECTS, SCHEDULE } from '../constants';
 
-// Ghép system prompt từ dữ liệu gian hàng
+const apiKey = process.env.API_KEY || '';
+
+// Safely initialize the AI client
+let ai: GoogleGenAI | null = null;
+if (apiKey) {
+    ai = new GoogleGenAI({ apiKey });
+} else {
+    console.warn("API_KEY is missing. AI features will not work.");
+}
+
+// Construct a rich system instruction with dynamic data
 const buildSystemInstruction = () => {
-  const projectData = PROJECTS.map(
-    (p) =>
-      `- Sản phẩm: "${p.title}" (Lĩnh vực: ${p.category}). Tác giả: ${p.authors}. Mô tả: ${p.description}`
-  ).join("\n");
+    const projectData = PROJECTS.map(p => 
+        `- Sản phẩm: "${p.title}" (Lĩnh vực: ${p.category}). Tác giả: ${p.authors}. Mô tả: ${p.description}`
+    ).join('\n');
 
-  const scheduleData = SCHEDULE.map(
-    (s) =>
-      `- Thời gian: ${s.time}. Sự kiện: "${s.title}" tại ${s.location}. Chi tiết: ${s.description}`
-  ).join("\n");
+    const scheduleData = SCHEDULE.map(s => 
+        `- Thời gian: ${s.time}. Sự kiện: "${s.title}" tại ${s.location}. Chi tiết: ${s.description}`
+    ).join('\n');
 
-  return `${FESTIVAL_CONTEXT}
+    return `${FESTIVAL_CONTEXT}
 
 DƯỚI ĐÂY LÀ DỮ LIỆU CHI TIẾT VỀ GIAN HÀNG TRƯỜNG NGUYỄN BỈNH KHIÊM:
 
@@ -31,41 +39,24 @@ LƯU Ý KHI TRẢ LỜI:
 `;
 };
 
-// Hàm được App.tsx gọi: const reply = await generateResponse(userMsg);
 export const generateResponse = async (userMessage: string): Promise<string> => {
-  const prompt = `${buildSystemInstruction()}
-
-CÂU HỎI CỦA KHÁCH THAM QUAN:
-${userMessage}
-
-HÃY TRẢ LỜI BẰNG TIẾNG VIỆT, NGẮN GỌN, DỄ HIỂU.`;
-
-  try {
-    const res = await fetch("/api/gemini", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ prompt }),
-    });
-
-    if (!res.ok) {
-      console.error("Gemini API returned non-OK status:", res.status);
-      return "Xin lỗi, hiện tôi đang gặp lỗi khi kết nối tới AI. Bạn vui lòng thử lại sau nhé.";
+    if (!ai) {
+        return "Xin lỗi, tôi chưa được kết nối với hệ thống AI (Thiếu API Key).";
     }
 
-    const data = await res.json();
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: userMessage,
+            config: {
+                systemInstruction: buildSystemInstruction(),
+                temperature: 0.5, // Lower temperature for more accurate factual responses
+            }
+        });
 
-    if (typeof data.text === "string" && data.text.trim().length > 0) {
-      return data.text;
-    } else if (data.error) {
-      console.error("Gemini API error:", data.error);
-      return "Xin lỗi, đã xảy ra lỗi khi xử lý yêu cầu. Bạn thử hỏi lại theo cách khác giúp tôi nhé.";
+        return response.text || "Xin lỗi, tôi không thể trả lời câu hỏi này lúc này.";
+    } catch (error) {
+        console.error("Gemini API Error:", error);
+        return "Đã xảy ra lỗi khi kết nối với máy chủ AI. Vui lòng thử lại.";
     }
-
-    return "Xin lỗi, tôi không nhận được câu trả lời từ AI.";
-  } catch (error) {
-    console.error("Network or parsing error when calling /api/gemini:", error);
-    return "Xin lỗi, có lỗi kết nối khi gọi tới AI. Bạn kiểm tra lại mạng hoặc thử lại sau nhé.";
-  }
 };

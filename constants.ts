@@ -1,8 +1,8 @@
 
 import { Project, ScheduleItem } from './types';
 
-export const SCHOOL_NAME = "Trường Trung Học Cơ Sở Nguyễn Bỉnh Khiêm";
-export const BOOTH_NUMBER = "17";
+export const SCHOOL_NAME = "TRƯỜNG TRUNG HỌC CƠ SỞ NGUYỄN BỈNH KHIÊM";
+export const BOOTH_NUMBER = "40";
 
 export const FESTIVAL_CONTEXT = `
 Bạn là trợ lý ảo AI tại gian hàng số 17 của Trường Trung Học Cơ Sở Nguyễn Bỉnh Khiêm tham gia "Ngày hội Chung tay Cải cách hành chính và Chuyển đổi số năm 2025" tại phường Hòa Khánh.
@@ -24,11 +24,12 @@ Thông tin về trường THCS Nguyễn Bỉnh Khiêm:
 - Tham gia thi Dân vũ.
 `;
 
-// Local Image for STEM (User uploaded to public/sunflower.png)
-const STEM_COVER_IMAGE = "/images/sunflower.png";
+// HƯỚNG DẪN:
+// 1. Tải ảnh hoa hướng dương của bạn lên thư mục 'public' và đổi tên thành 'sunflower.png'
+// 2. Tải ảnh đại diện AI của bạn lên thư mục 'public' và đổi tên thành 'ai.png'
 
-// Unsplash Image for AI
-const AI_COVER_IMAGE = "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=800&auto=format&fit=crop";
+const STEM_COVER_IMAGE = "/sunflower.png";
+const AI_COVER_IMAGE = "/ai.png";
 
 
 export const PROJECTS: Project[] = [
@@ -42,7 +43,7 @@ export const PROJECTS: Project[] = [
         coverImage: STEM_COVER_IMAGE,
         imageUrl: 'https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?q=80&w=800&auto=format&fit=crop', // Map illustration
         authors: 'Nguyễn Thị Diệu Hiền, Phan Thị Ngọc Lý',
-        demoUrl: 'https://example.com/demo/smartmap'
+        demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/b%E1%BA%A3n-%C4%91%E1%BB%93-vi%E1%BB%87t-nam-th%C3%B4ng-minh-smartmap-34'
     },
     {
         id: '2',
@@ -316,7 +317,7 @@ export const SCHEDULE: ScheduleItem[] = [
         id: '1',
         time: '14:00 - 28/11',
         title: 'Khai trương gian hàng',
-        location: 'Gian hàng số 17',
+        location: 'Gian hàng số 40',
         description: 'Đón tiếp đại biểu và khách tham quan.'
     },
     {
