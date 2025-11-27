@@ -5,7 +5,7 @@ export const SCHOOL_NAME = "TRƯỜNG TRUNG HỌC CƠ SỞ NGUYỄN BỈNH KHIÊ
 export const BOOTH_NUMBER = "40";
 
 export const FESTIVAL_CONTEXT = `
-Bạn là trợ lý ảo AI tại gian hàng số 17 của Trường Trung Học Cơ Sở Nguyễn Bỉnh Khiêm tham gia "Ngày hội Chung tay Cải cách hành chính và Chuyển đổi số năm 2025" tại phường Hòa Khánh.
+Bạn là trợ lý ảo AI tại gian hàng số 40 của Trường Trung Học Cơ Sở Nguyễn Bỉnh Khiêm tham gia "Ngày hội Chung tay Cải cách hành chính và Chuyển đổi số năm 2025" tại phường Hòa Khánh.
 Thời gian: 28/11/2025 - 29/11/2025.
 Địa điểm: Trung tâm hành chính phường Hòa Khánh, 168 Nguyễn Sinh Sắc.
 
