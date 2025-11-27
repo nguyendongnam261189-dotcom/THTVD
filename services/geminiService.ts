@@ -1,18 +1,24 @@
 // src/services/geminiService.ts
 
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { FESTIVAL_CONTEXT, PROJECTS, SCHEDULE } from "../constants";
 
-// Lấy API key từ biến môi trường process.env.API_KEY theo hướng dẫn
-// Giả định biến này đã được cấu hình trong môi trường chạy
-const apiKey = process.env.API_KEY;
+// ⚠️ Vite không dùng process.env mà dùng import.meta.env
+// Trên Vercel / file .env: đặt VITE_GEMINI_API_KEY=...
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
 
-let ai: GoogleGenAI | null = null;
+// Chuẩn bị biến model (nếu không có key thì để null, tránh crash)
+let model: ReturnType<GoogleGenerativeAI["getGenerativeModel"]> | null = null;
 
 if (apiKey) {
-  ai = new GoogleGenAI({ apiKey: apiKey });
+  const genAI = new GoogleGenerativeAI(apiKey);
+  // Có thể đổi model nếu muốn, ví dụ "gemini-2.0-flash"
+  model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 } else {
-  console.warn("API_KEY is missing. AI features will not work.");
+  // Chỉ cảnh báo khi chạy dev, để bản deploy không spam console
+  if (import.meta.env.DEV) {
+    console.warn("VITE_GEMINI_API_KEY is missing. AI features will not work.");
+  }
 }
 
 // Tạo system prompt từ dữ liệu FESTIVAL_CONTEXT, PROJECTS, SCHEDULE
@@ -47,22 +53,24 @@ LƯU Ý KHI TRẢ LỜI:
 
 // Hàm dùng trong App.tsx để gọi AI
 export const generateResponse = async (userMessage: string): Promise<string> => {
-  // Nếu chưa có instance AI (chưa cấu hình API Key) thì trả lời nhẹ nhàng
-  if (!ai) {
+  // Nếu chưa có model (chưa cấu hình API Key) thì trả lời nhẹ nhàng
+  if (!model) {
     return "Xin lỗi, tôi chưa được kết nối với hệ thống AI (thiếu API Key). Vui lòng báo với thầy/cô phụ trách gian hàng kiểm tra cấu hình.";
   }
 
   try {
-    const systemInstruction = buildSystemInstruction();
-    
-    // Sử dụng model gemini-2.5-flash cho các tác vụ văn bản cơ bản
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: `${systemInstruction}\n\nCÂU HỎI CỦA KHÁCH THAM QUAN:\n${userMessage}`,
-    });
+    // Gộp system instruction + câu hỏi của khách vào một prompt
+    const prompt = `${buildSystemInstruction()}
 
-    // Truy cập trực tiếp thuộc tính .text (không phải hàm text())
-    return response.text?.trim() || "Xin lỗi, tôi không thể trả lời câu hỏi này lúc này.";
+CÂU HỎI CỦA KHÁCH THAM QUAN:
+${userMessage}
+`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    return text?.trim() || "Xin lỗi, tôi không thể trả lời câu hỏi này lúc này.";
   } catch (error) {
     console.error("Gemini API Error:", error);
     return "Đã xảy ra lỗi khi kết nối với máy chủ AI. Vui lòng thử lại sau hoặc hỏi trực tiếp thầy cô tại gian hàng.";
