@@ -7,10 +7,10 @@ import ProjectCard from './components/ProjectCard';
 import { generateResponse } from './services/geminiService';
 import {
   Send, Bot, Clock, MapPin, X, Award, ChevronRight, AlertCircle, ExternalLink,
-  Maximize, Minimize, BrainCircuit, Box, Home, Fingerprint, Scan, Smartphone, Wifi
+  Maximize, Minimize, BrainCircuit, Box, Home, Fingerprint, Scan, Smartphone, Wifi,
+  ShieldCheck, Cpu, Activity
 } from 'lucide-react';
 
-// Thời gian chờ: 30000ms = 30 giây
 const IDLE_TIMEOUT_MS = 30000; 
 
 const App: React.FC = () => {
@@ -31,71 +31,77 @@ const App: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAboutVideoFullscreen, setIsAboutVideoFullscreen] = useState(false);
 
-  // --- LOGIC MÀN HÌNH CHỜ (SCREENSAVER) ĐÃ TỐI ƯU ---
+  // --- TRẠNG THÁI MỚI ---
   const [isIdle, setIsIdle] = useState(true); 
+  const [isUnlocking, setIsUnlocking] = useState(false); // Trạng thái đang chạy hiệu ứng mở khóa
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Hàm này sẽ được gọi mỗi khi người dùng có thao tác
-  const resetIdleTimer = useCallback(() => {
-    // 1. Hủy bộ đếm cũ ngay lập tức (quan trọng)
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
+  // --- LOGIC GIỌNG NÓI TRỢ LÝ ẢO ---
+  const speakWelcome = () => {
+    // Hủy các lệnh nói cũ nếu có
+    window.speechSynthesis.cancel();
 
-    // 2. Nếu đang ở màn hình chờ (video đang chạy), không làm gì cả (để hàm wakeUp lo)
-    //    Nếu đang dùng bình thường (!isIdle), thì đặt lại bộ đếm mới
-    if (!isIdle) {
+    const text = `Chào mừng bạn đến với Gian hàng Chuyển đổi số của trường Trung học cơ sở Nguyễn Bỉnh Khiêm.`;
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Cấu hình giọng nói (Tiếng Việt)
+    utterance.lang = 'vi-VN'; 
+    utterance.rate = 1.0; // Tốc độ nói
+    utterance.pitch = 1.1; // Tông giọng cao hơn xíu cho giống robot
+
+    // Tìm giọng Google tiếng Việt (nếu có) để hay hơn
+    const voices = window.speechSynthesis.getVoices();
+    const vnVoice = voices.find(v => v.lang.includes('vi'));
+    if (vnVoice) utterance.voice = vnVoice;
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const resetIdleTimer = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+
+    // Chỉ đếm ngược khi ĐANG SỬ DỤNG (không phải idle, không phải đang unlock)
+    if (!isIdle && !isUnlocking) {
       timerRef.current = setTimeout(() => {
-        console.log("--> Đã hết 30s không thao tác. Kích hoạt Screensaver.");
-        
-        // Reset mọi trạng thái về mặc định trước khi hiện video
+        console.log("--> Timeout. Kích hoạt Screensaver.");
         setCurrentView(AppView.HOME);
         setSelectedProject(null);
         setIframeUrl(null);
         setIsAboutVideoFullscreen(false);
-        
-        // Bật màn hình chờ
         setIsIdle(true);
       }, IDLE_TIMEOUT_MS);
     }
-  }, [isIdle]);
+  }, [isIdle, isUnlocking]);
 
-  // Hàm đánh thức: Chỉ chạy khi click vào màn hình chờ
+  // --- HÀM ĐÁNH THỨC & CHẠY HIỆU ỨNG ---
   const wakeUp = () => {
-    console.log("--> Đánh thức màn hình!");
+    if (isUnlocking) return; // Nếu đang mở khóa thì không làm gì
+
+    console.log("--> Bắt đầu quy trình mở khóa...");
     setIsIdle(false);
-    // Ngay khi đánh thức, timer sẽ được reset bởi useEffect bên dưới
+    setIsUnlocking(true); // Bắt đầu hiệu ứng
+
+    // 1. Phát giọng nói chào mừng
+    speakWelcome();
+
+    // 2. Chờ 3.5 giây (để chạy xong hiệu ứng) rồi mới vào trang chủ
+    setTimeout(() => {
+      setIsUnlocking(false);
+      resetIdleTimer(); // Bắt đầu đếm ngược lại từ đầu
+    }, 3500);
   };
 
-  // Lắng nghe sự kiện toàn cục
   useEffect(() => {
-    // Danh sách các sự kiện cần bắt
-    const events = [
-      'mousedown', 'mousemove', 'click', 
-      'touchstart', 'touchmove', 
-      'keydown', 'scroll', 'wheel'
-    ];
-    
-    // Khởi động timer lần đầu tiên nếu đang không nghỉ
-    if (!isIdle) {
-      resetIdleTimer();
-    }
-
-    // Gắn sự kiện vào window (toàn bộ cửa sổ)
-    events.forEach(event => {
-      window.addEventListener(event, resetIdleTimer);
-    });
-
-    // Dọn dẹp khi unmount hoặc isIdle thay đổi
+    const events = ['mousedown', 'mousemove', 'click', 'touchstart', 'touchmove', 'keydown', 'scroll', 'wheel'];
+    if (!isIdle && !isUnlocking) resetIdleTimer();
+    const handleActivity = () => { if (!isIdle && !isUnlocking) resetIdleTimer(); };
+    events.forEach(event => window.addEventListener(event, resetIdleTimer));
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
-      events.forEach(event => {
-        window.removeEventListener(event, resetIdleTimer);
-      });
+      events.forEach(event => window.removeEventListener(event, resetIdleTimer));
     };
-  }, [isIdle, resetIdleTimer]);
+  }, [isIdle, isUnlocking, resetIdleTimer]);
 
-  // --- CÁC HIỆU ỨNG KHÁC ---
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   useEffect(() => {
@@ -129,31 +135,87 @@ const App: React.FC = () => {
   };
 
   // --- RENDERS ---
-  
+
   // 1. MÀN HÌNH CHỜ (SCREENSAVER)
   if (isIdle) {
     return (
       <div 
-        className="fixed inset-0 z-[100000] bg-black flex flex-col items-center justify-center cursor-pointer animate-in fade-in duration-1000 group"
+        className="fixed inset-0 z-[100000] bg-black flex flex-col items-center justify-center cursor-pointer animate-in fade-in duration-1000 group overflow-hidden"
         onClick={wakeUp}
       >
-        <video src="/intro.mp4" className="absolute inset-0 w-full h-full object-cover" autoPlay loop playsInline />
-        <div className="absolute inset-0 bg-black/10" /> 
-        <div className="absolute bottom-24 flex flex-col items-center gap-3 animate-bounce">
-          <div className="p-4 rounded-full bg-primary/20 backdrop-blur-md border border-primary/50 text-white shadow-[0_0_30px_rgba(14,165,233,0.6)] group-hover:scale-110 transition-transform duration-300">
-             <Fingerprint size={48} className="animate-pulse" />
+        <video src="/intro.mp4" className="absolute inset-0 w-full h-full object-cover opacity-80" autoPlay loop playsInline />
+        <div className="absolute inset-0 bg-black/20" /> 
+        
+        {/* Vòng tròn quét công nghệ */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+           <div className="w-[500px] h-[500px] border border-primary/20 rounded-full animate-[spin_10s_linear_infinite]" />
+           <div className="absolute w-[450px] h-[450px] border border-dashed border-primary/30 rounded-full animate-[spin_15s_linear_infinite_reverse]" />
+        </div>
+
+        <div className="absolute bottom-24 flex flex-col items-center gap-3 animate-bounce z-10">
+          <div className="p-5 rounded-full bg-black/40 backdrop-blur-xl border border-primary text-primary shadow-[0_0_50px_rgba(14,165,233,0.5)] group-hover:scale-110 transition-transform duration-300 relative overflow-hidden">
+             <Fingerprint size={64} className="animate-pulse" />
+             {/* Hiệu ứng tia quét qua vân tay */}
+             <div className="absolute top-0 left-0 w-full h-1 bg-white/50 blur-sm animate-[bounce_1.5s_infinite]" />
           </div>
-          <div className="bg-black/30 backdrop-blur-md border border-white/10 px-6 py-2 rounded-full text-white/90 font-bold text-sm uppercase tracking-[0.2em] shadow-xl">
-            Chạm màn hình để bắt đầu
+          <div className="bg-black/50 backdrop-blur-md border border-white/20 px-8 py-3 rounded-full text-white font-bold text-sm uppercase tracking-[0.3em] shadow-xl">
+            Chạm để xác thực
           </div>
         </div>
       </div>
     );
   }
 
-  // 2. GIAO DIỆN CHÍNH
+  // 2. MÀN HÌNH HIỆU ỨNG MỞ KHÓA (LOGIN EFFECT)
+  if (isUnlocking) {
+    return (
+      <div className="fixed inset-0 z-[100000] bg-black flex flex-col items-center justify-center text-center font-mono overflow-hidden">
+        {/* Background Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.1)_1px,transparent_1px)] bg-[size:50px_50px]" />
+        
+        {/* ROBOT HOLOGRAM */}
+        <div className="relative mb-8 z-10 animate-in zoom-in duration-500">
+          <div className="relative w-40 h-40 flex items-center justify-center">
+            {/* Vòng tròn Hologram */}
+            <div className="absolute inset-0 border-4 border-primary rounded-full animate-[spin_3s_linear_infinite] border-t-transparent border-l-transparent" />
+            <div className="absolute inset-2 border-2 border-secondary rounded-full animate-[spin_4s_linear_infinite_reverse] border-b-transparent" />
+            
+            {/* Icon Robot */}
+            <Bot size={80} className="text-white drop-shadow-[0_0_20px_rgba(14,165,233,1)] animate-pulse" />
+          </div>
+          <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-32 h-4 bg-primary/50 blur-xl rounded-[100%]" /> {/* Bóng sáng */}
+        </div>
+
+        {/* Text Loading Effect */}
+        <div className="z-10 space-y-4">
+          <h2 className="text-3xl font-bold text-white tracking-widest animate-pulse">
+            SYSTEM ACCESS GRANTED
+          </h2>
+          
+          <div className="flex flex-col gap-2 items-center text-primary/80 text-sm">
+            <div className="flex items-center gap-2">
+               <ShieldCheck size={16} /> <span>Đang xác thực danh tính... <span className="text-green-400 font-bold">OK</span></span>
+            </div>
+            <div className="flex items-center gap-2 delay-1000 animate-in fade-in fill-mode-forwards opacity-0" style={{animationDelay: '0.5s'}}>
+               <Cpu size={16} /> <span>Kết nối máy chủ STEM... <span className="text-green-400 font-bold">OK</span></span>
+            </div>
+            <div className="flex items-center gap-2 delay-2000 animate-in fade-in fill-mode-forwards opacity-0" style={{animationDelay: '1s'}}>
+               <Activity size={16} /> <span>Tải dữ liệu chuyển đổi số... <span className="text-green-400 font-bold">100%</span></span>
+            </div>
+          </div>
+
+          {/* Loading Bar */}
+          <div className="w-64 h-1 bg-white/20 rounded-full mt-6 overflow-hidden mx-auto">
+             <div className="h-full bg-gradient-to-r from-primary to-secondary w-full animate-[translateX_1.5s_ease-in-out]" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. GIAO DIỆN CHÍNH (MAIN APP)
   const renderHome = () => (
-    <div className="flex flex-col items-center justify-center min-h-full py-20 px-4 text-center animate-in fade-in zoom-in duration-500">
+    <div className="flex flex-col items-center justify-center min-h-full py-20 px-4 text-center animate-in fade-in zoom-in duration-1000">
       <div className="mb-6 inline-flex items-center justify-center p-3 rounded-full bg-primary/20 border border-primary/50 animate-bounce">
         <span className="text-primary font-bold tracking-widest uppercase text-sm">Ngày Hội Chuyển Đổi Số 2025</span>
       </div>
@@ -361,13 +423,9 @@ const App: React.FC = () => {
           </div>
           
           <div className="flex-1 w-full bg-slate-900 relative flex items-center justify-center overflow-hidden">
-            {/* LOGIC HIỂN THỊ QR CODE CHUYÊN NGHIỆP */}
             {isGoogleSite(iframeUrl) ? (
               <div className="w-full h-full flex flex-col md:flex-row items-center justify-center gap-12 p-8 animate-in zoom-in duration-500 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-black">
-                
-                {/* Phần QR CODE với khung ngắm HUD */}
                 <div className="relative group">
-                    {/* Hiệu ứng khung ngắm (Viewfinder corners) */}
                     <div className="absolute -top-4 -left-4 w-12 h-12 border-t-4 border-l-4 border-primary rounded-tl-xl" />
                     <div className="absolute -top-4 -right-4 w-12 h-12 border-t-4 border-r-4 border-primary rounded-tr-xl" />
                     <div className="absolute -bottom-4 -left-4 w-12 h-12 border-b-4 border-l-4 border-primary rounded-bl-xl" />
@@ -379,7 +437,6 @@ const App: React.FC = () => {
                             alt="Scan QR" 
                             className="w-64 h-64 md:w-80 md:h-80 object-contain z-10 relative"
                         />
-                        {/* Hiệu ứng tia quét Laser chạy qua chạy lại */}
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_15px_rgba(239,68,68,1)] z-20 animate-[bounce_2s_infinite]" />
                     </div>
                     
@@ -388,7 +445,6 @@ const App: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Phần hướng dẫn bên cạnh */}
                 <div className="text-center md:text-left max-w-md space-y-6">
                   <div className="flex items-center justify-center md:justify-start gap-3 text-primary mb-2">
                     <div className="p-2 bg-primary/20 rounded-lg"><Scan size={32} /></div>
@@ -415,14 +471,16 @@ const App: React.FC = () => {
                 </div>
               </div>
             ) : (
-              /* Nếu là link thường -> Hiện iframe */
               <iframe src={iframeUrl} className="w-full h-full border-0 bg-white" title="Demo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
             )}
           </div>
         </div>
       )}
 
-      <Navigation currentView={currentView} onNavigate={setCurrentView} />
+      {/* Chỉ hiện thanh Navigation khi không ở màn hình chờ và không mở khóa */}
+      {!isIdle && !isUnlocking && (
+         <Navigation currentView={currentView} onNavigate={setCurrentView} />
+      )}
     </div>
   );
 };
