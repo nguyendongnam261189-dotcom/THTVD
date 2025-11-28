@@ -70,7 +70,6 @@ const toVietnamese = (str: string) => {
   return result; 
 };
 
-// Màu sắc cho vòng quay (8 ô)
 const SEGMENT_COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#f97316', '#06b6d4', '#ec4899'];
 
 const App: React.FC = () => {
@@ -129,50 +128,69 @@ const App: React.FC = () => {
   const [wheelAdminCount, setWheelAdminCount] = useState(0);
   const [isWheelAdmin, setIsWheelAdmin] = useState(false);
 
-  // --- LOGIC LOAD/SAVE DATA ---
+  // --- LOGIC LOAD/SAVE DATA (ĐÃ SỬA ĐỂ TRÁNH LỖI MÀN HÌNH ĐEN) ---
   useEffect(() => {
-    const savedGuest = localStorage.getItem('digital_guestbook_data');
-    if (savedGuest) setGuestEntries(JSON.parse(savedGuest));
+    try {
+      const savedGuest = localStorage.getItem('digital_guestbook_data');
+      if (savedGuest) {
+        const parsedData = JSON.parse(savedGuest);
+        // Kiểm tra xem dữ liệu có phải mảng không, nếu không thì reset
+        if (Array.isArray(parsedData)) {
+          setGuestEntries(parsedData);
+        } else {
+          throw new Error("Dữ liệu lỗi");
+        }
+      } else {
+        // Dữ liệu mẫu mặc định
+        setGuestEntries([
+          { id: 1, name: 'Thầy Hiệu Trưởng', message: 'Chúc ngày hội thành công rực rỡ!', emoji: '🎉', timestamp: '28/11' },
+          { id: 2, name: 'Học sinh 9/1', message: 'Gian hàng trường mình xịn quá!', emoji: '😍', timestamp: '28/11' },
+          { id: 3, name: 'BTC', message: 'Chào mừng các em học sinh!', emoji: '🚀', timestamp: '28/11' }
+        ]);
+      }
+    } catch (e) {
+      console.error("Lỗi đọc dữ liệu cũ, đang reset...", e);
+      localStorage.removeItem('digital_guestbook_data');
+    }
     
-    const savedPrizes = localStorage.getItem('lucky_wheel_prizes');
-    if (savedPrizes) setPrizes(JSON.parse(savedPrizes));
+    try {
+      const savedPrizes = localStorage.getItem('lucky_wheel_prizes');
+      if (savedPrizes) {
+         const parsedPrizes = JSON.parse(savedPrizes);
+         if(Array.isArray(parsedPrizes)) setPrizes(parsedPrizes);
+      }
+    } catch(e) {
+      console.error("Lỗi đọc giải thưởng, reset...");
+      localStorage.removeItem('lucky_wheel_prizes');
+    }
   }, []);
 
   useEffect(() => { localStorage.setItem('digital_guestbook_data', JSON.stringify(guestEntries)); }, [guestEntries]);
   useEffect(() => { localStorage.setItem('lucky_wheel_prizes', JSON.stringify(prizes)); }, [prizes]);
 
-  // --- LOGIC VÒNG QUAY (ĐÃ SỬA THUẬT TOÁN CHÍNH XÁC) ---
+  // --- LOGIC VÒNG QUAY ---
   const handleSpinWheel = () => {
     if (isSpinning) return;
     setWinner(null);
     setIsSpinning(true);
     
-    // 1. Chọn trước kết quả ngẫu nhiên (0-7)
     const winnerIndex = Math.floor(Math.random() * prizes.length);
-    
-    // 2. Tính góc để ô đó dừng ở vị trí kim chỉ (Top/12h)
-    // Mỗi ô = 45 độ (360/8). 
-    // Tâm ô số 0 là 22.5 độ. Để đưa nó về 0 độ, ta cần quay lùi 22.5 độ (hoặc tới 360-22.5).
-    // Công thức: 360 - (index * 45 + 22.5)
     const segmentAngle = 360 / prizes.length;
-    const offsetAngle = segmentAngle / 2; // 22.5
+    const offsetAngle = segmentAngle / 2; 
     const targetAngle = 360 - (winnerIndex * segmentAngle + offsetAngle);
     
-    // 3. Cộng thêm số vòng quay tối thiểu (5 vòng = 1800 độ)
-    // Quan trọng: Cần tính chênh lệch từ vị trí hiện tại để quay tiếp chứ không giật lùi
     const currentRotationMod = wheelRotation % 360;
     let adjustment = targetAngle - currentRotationMod;
-    if (adjustment < 0) adjustment += 360; // Luôn quay tới
+    if (adjustment < 0) adjustment += 360;
     
-    const extraSpins = 5 * 360; // 5 vòng
+    const extraSpins = 5 * 360; 
     const newRotation = wheelRotation + extraSpins + adjustment;
 
     setWheelRotation(newRotation);
 
-    // 4. Hiển thị kết quả sau 4s
     setTimeout(() => {
       setIsSpinning(false);
-      setWinner(prizes[winnerIndex]); // Đảm bảo hiển thị đúng ô đã chọn
+      setWinner(prizes[winnerIndex]);
     }, 4000);
   };
 
@@ -275,23 +293,11 @@ const App: React.FC = () => {
     }
   }, [isIdle, isUnlocking, isSuccess, iframeUrl, showKeyboard, isGuestbookOpen, isWheelOpen]);
 
-  // --- QUY TRÌNH MỞ KHÓA (ĐÃ UPDATE 1.5s) ---
   const wakeUp = () => {
     if (isUnlocking || isSuccess) return; 
     setIsIdle(false); setIsUnlocking(true); 
-    
-    // Giảm thời gian chờ xuống 1.5s
-    setTimeout(() => { 
-      setIsUnlocking(false); 
-      setIsSuccess(true); 
-      speakWelcome(); 
-    }, 1500); 
-
-    // Tổng thời gian = 1.5s + 5s (hiển thị thông báo) = 6.5s
-    setTimeout(() => { 
-      setIsSuccess(false); 
-      resetIdleTimer(); 
-    }, 6500);
+    setTimeout(() => { setIsUnlocking(false); setIsSuccess(true); speakWelcome(); }, 1500);
+    setTimeout(() => { setIsSuccess(false); resetIdleTimer(); }, 6500);
   };
 
   useEffect(() => {
@@ -335,12 +341,12 @@ const App: React.FC = () => {
     <div className="flex flex-col items-center justify-center min-h-full py-20 px-4 text-center animate-in fade-in zoom-in duration-1000 relative">
       <div className="mb-2 inline-flex items-center justify-center p-3 rounded-full bg-primary/20 border border-primary/50 animate-bounce"><span className="text-primary font-bold tracking-widest uppercase text-sm">Ngày Hội Chuyển Đổi Số 2025</span></div>
       
-      {/* SỔ LƯU BÚT */}
+      {/* SỔ LƯU BÚT - ĐÃ FIX MÀN HÌNH ĐEN: Sử dụng check an toàn Array.isArray */}
       <div className="w-full max-w-4xl mb-4 relative h-12 bg-white/5 rounded-full border border-white/10 flex items-center overflow-hidden">
          <div className="absolute left-0 top-0 bottom-0 z-20 flex items-center px-6 bg-slate-900 border-r border-white/20 shadow-[5px_0_20px_rgba(0,0,0,0.8)]"><MessageSquareHeart size={20} className="mr-2 text-pink-500 animate-pulse" /> <span className="text-white font-bold uppercase tracking-wider text-sm">Lưu bút</span></div>
          <div className="flex items-center animate-marquee whitespace-nowrap pl-40"> 
-            {guestEntries.map(entry => (<div key={entry.id} className="flex items-center gap-2 text-white/80 mx-8"><span className="text-2xl">{entry.emoji}</span><span className="font-bold text-primary text-lg">{entry.name}:</span><span className="text-lg">"{entry.message}"</span><span className="text-xs text-white/30 ml-1">({entry.timestamp})</span></div>))}
-            {guestEntries.map(entry => (<div key={`dup-${entry.id}`} className="flex items-center gap-2 text-white/80 mx-8"><span className="text-2xl">{entry.emoji}</span><span className="font-bold text-primary text-lg">{entry.name}:</span><span className="text-lg">"{entry.message}"</span><span className="text-xs text-white/30 ml-1">({entry.timestamp})</span></div>))}
+            {Array.isArray(guestEntries) && guestEntries.map(entry => (<div key={entry.id} className="flex items-center gap-2 text-white/80 mx-8"><span className="text-2xl">{entry.emoji}</span><span className="font-bold text-primary text-lg">{entry.name}:</span><span className="text-lg">"{entry.message}"</span><span className="text-xs text-white/30 ml-1">({entry.timestamp})</span></div>))}
+            {Array.isArray(guestEntries) && guestEntries.map(entry => (<div key={`dup-${entry.id}`} className="flex items-center gap-2 text-white/80 mx-8"><span className="text-2xl">{entry.emoji}</span><span className="font-bold text-primary text-lg">{entry.name}:</span><span className="text-lg">"{entry.message}"</span><span className="text-xs text-white/30 ml-1">({entry.timestamp})</span></div>))}
          </div>
       </div>
 
@@ -374,7 +380,7 @@ const App: React.FC = () => {
                     <div><label className="text-xs text-white/50 uppercase font-bold mb-2 block">Cảm xúc</label><div className="flex gap-2">{['❤️', '😍', '👍', '🔥', '🎉', '🚀', '⭐', '🍀'].map(emoji => (<button key={emoji} onClick={() => setNewGuestEmoji(emoji)} className={`w-10 h-10 rounded-full flex items-center justify-center text-xl transition-all ${newGuestEmoji === emoji ? 'bg-pink-500 scale-110 shadow-lg' : 'bg-white/10 hover:bg-white/20'}`}>{emoji}</button>))}</div></div>
                     <button onClick={handleAddGuestEntry} disabled={!newGuestName.trim() || !newGuestMsg.trim()} className="w-full py-3 bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl font-bold text-white shadow-lg hover:shadow-pink-500/20 disabled:opacity-50 disabled:cursor-not-allowed mt-2">Gửi Lời Chúc</button>
                  </div>
-                 <div className="space-y-3"><h4 className="text-white font-bold mb-2">Lời chúc gần đây</h4>{guestEntries.map(entry => (<div key={entry.id} className="bg-white/5 border border-white/5 p-4 rounded-xl flex gap-4 group hover:bg-white/10 transition-colors"><div className="text-3xl pt-1">{entry.emoji}</div><div className="flex-1"><div className="flex justify-between items-start"><h5 className="font-bold text-pink-400">{entry.name}</h5><span className="text-xs text-white/30">{entry.timestamp}</span></div><p className="text-white/80 mt-1">{entry.message}</p></div>{isAdminMode && (<button onClick={() => handleDeleteEntry(entry.id)} className="p-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors h-fit self-center"><Trash2 size={18} /></button>)}</div>))}</div>
+                 <div className="space-y-3"><h4 className="text-white font-bold mb-2">Lời chúc gần đây</h4>{Array.isArray(guestEntries) && guestEntries.map(entry => (<div key={entry.id} className="bg-white/5 border border-white/5 p-4 rounded-xl flex gap-4 group hover:bg-white/10 transition-colors"><div className="text-3xl pt-1">{entry.emoji}</div><div className="flex-1"><div className="flex justify-between items-start"><h5 className="font-bold text-pink-400">{entry.name}</h5><span className="text-xs text-white/30">{entry.timestamp}</span></div><p className="text-white/80 mt-1">{entry.message}</p></div>{isAdminMode && (<button onClick={() => handleDeleteEntry(entry.id)} className="p-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors h-fit self-center"><Trash2 size={18} /></button>)}</div>))}</div>
               </div>
               <button onClick={() => setIsGuestbookOpen(false)} className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"><X size={20} /></button>
            </div>
@@ -395,7 +401,6 @@ const App: React.FC = () => {
       {/* MODAL VÒNG QUAY MAY MẮN */}
       {isWheelOpen && (
         <div className="fixed inset-0 z-[90] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in zoom-in duration-300">
-           {/* Nút đóng góc trên phải màn hình (ĐÃ SỬA Z-INDEX & VỊ TRÍ) */}
            <button 
                onClick={() => setIsWheelOpen(false)}
                className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors z-[100]"
@@ -404,24 +409,19 @@ const App: React.FC = () => {
            </button>
 
            <div className="relative w-full max-w-lg flex flex-col items-center mt-10">
-              {/* Header: Click 5 lần để sửa quà */}
               <div 
                 className="text-center mb-8 cursor-pointer select-none relative z-10"
                 onClick={handleWheelTitleClick}
               >
-                {/* Đã thêm padding-top và leading-relaxed để không mất dấu sắc */}
                 <h2 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 drop-shadow-sm uppercase tracking-widest py-2 leading-relaxed">
                   Vòng Quay May Mắn
                 </h2>
                 {isWheelAdmin && <span className="inline-block mt-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">ADMIN EDIT</span>}
               </div>
 
-              {/* VÒNG QUAY */}
               <div className="relative w-80 h-80 md:w-96 md:h-96">
-                 {/* Mũi tên chỉ */}
                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 z-20 w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-t-[30px] border-t-white drop-shadow-lg" />
                  
-                 {/* Đĩa quay */}
                  <div 
                     className="w-full h-full rounded-full border-8 border-white shadow-[0_0_50px_rgba(234,179,8,0.5)] overflow-hidden relative transition-transform duration-[4000ms] cubic-bezier(0.1, 0, 0.2, 1)"
                     style={{ 
@@ -438,13 +438,10 @@ const App: React.FC = () => {
                       )`
                     }}
                  >
-                    {/* Đường kẻ chia ô */}
                     {[0, 45, 90, 135, 180, 225, 270, 315].map(deg => (
                        <div key={deg} className="absolute top-0 left-1/2 w-0.5 h-1/2 bg-white/20 origin-bottom" style={{ transform: `translateX(-50%) rotate(${deg}deg)` }} />
                     ))}
-                    
-                    {/* Tên quà */}
-                    {prizes.map((prize, i) => (
+                    {Array.isArray(prizes) && prizes.map((prize, i) => (
                        <div 
                           key={i} 
                           className="absolute top-0 left-1/2 w-1 h-1/2 origin-bottom flex justify-center pt-4"
@@ -457,7 +454,6 @@ const App: React.FC = () => {
                     ))}
                  </div>
 
-                 {/* Nút quay ở giữa */}
                  <button 
                     onClick={handleSpinWheel}
                     disabled={isSpinning}
@@ -469,7 +465,6 @@ const App: React.FC = () => {
                  </button>
               </div>
 
-              {/* Phần Admin Edit */}
               {isWheelAdmin && (
                  <div className="mt-8 w-full bg-slate-800 p-4 rounded-xl border border-white/20">
                     <h4 className="text-white font-bold mb-2 flex items-center gap-2"><Settings size={16} /> Chỉnh sửa danh sách quà</h4>
@@ -489,7 +484,6 @@ const App: React.FC = () => {
                  </div>
               )}
 
-              {/* Thông báo trúng thưởng (ĐÃ ĐƯA LÊN CAO NHẤT) */}
               {winner && (
                  <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-3xl animate-in zoom-in duration-300">
                     <div className="bg-white text-center p-8 rounded-3xl shadow-2xl border-4 border-yellow-400 relative overflow-hidden max-w-sm w-full mx-4">
@@ -511,7 +505,6 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Chỉ hiện thanh Navigation khi không ở màn hình chờ và không mở khóa */}
       {!isIdle && !isUnlocking && !isSuccess && (
          <Navigation currentView={currentView} onNavigate={setCurrentView} />
       )}
