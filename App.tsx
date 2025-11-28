@@ -17,20 +17,27 @@ import 'react-simple-keyboard/build/css/index.css';
 
 const IDLE_TIMEOUT_MS = 30000; 
 
-// --- HÀM XỬ LÝ GÕ TIẾNG VIỆT (TELEX ĐƠN GIẢN) ---
+// --- HÀM XỬ LÝ GÕ TIẾNG VIỆT (TELEX NÂNG CẤP) ---
+// Hàm này giúp ghép ký tự cơ bản: aa->â, dd->đ, ee->ê, oo->ô...
 const toVietnamese = (str: string) => {
-  // Bảng quy tắc Telex cơ bản
-  const mapping: Record<string, string> = {
-    'aa': 'â', 'aw': 'ă', 'ee': 'ê', 'oo': 'ô', 'ow': 'ơ', 'dd': 'đ', 'uw': 'ư',
-    's': '\u0301', 'f': '\u0300', 'r': '\u0309', 'x': '\u0303', 'j': '\u0323' // Dấu: sắc, huyền, hỏi, ngã, nặng
-  };
+  let result = str;
   
-  // Logic đơn giản: Nếu người dùng không rành code, ta dùng thư viện hoặc logic thay thế cơ bản.
-  // Ở đây để đơn giản và không cần cài thêm thư viện nặng, ta dùng logic thay thế chuỗi cơ bản.
-  // (Lưu ý: Đây là bộ gõ demo, để gõ chuẩn 100% như Unikey cần logic phức tạp hơn nhiều. 
-  //  Nếu thầy muốn gõ tiếng Việt hoàn hảo trên Kiosk, cách tốt nhất vẫn là cài Unikey cho Windows 
-  //  và bật "Bàn phím màn hình" của Windows. Nhưng Code này sẽ hỗ trợ gõ cơ bản).
-  return str; 
+  // 1. Xử lý các dấu mũ/nón (Vowels)
+  result = result.replace(/aa/g, "â");
+  result = result.replace(/aw/g, "ă");
+  result = result.replace(/ee/g, "ê");
+  result = result.replace(/oo/g, "ô");
+  result = result.replace(/ow/g, "ơ");
+  result = result.replace(/uw/g, "ư"); // w cũng có thể là ư
+  result = result.replace(/dd/g, "đ");
+  
+  // 2. Xử lý viết hoa
+  result = result.replace(/AA/g, "Â").replace(/AW/g, "Ă").replace(/EE/g, "Ê")
+                 .replace(/OO/g, "Ô").replace(/OW/g, "Ơ").replace(/UW/g, "Ư").replace(/DD/g, "Đ");
+
+  // Lưu ý: Việc xử lý dấu thanh (s,f,r,x,j) phức tạp hơn nhiều nên tạm thời
+  // chúng ta ưu tiên xử lý các ký tự đặc biệt trước để gõ tên/địa chỉ dễ dàng hơn.
+  return result; 
 };
 
 const App: React.FC = () => {
@@ -42,7 +49,7 @@ const App: React.FC = () => {
   
   // Chat & Keyboard State
   const [input, setInput] = useState('');
-  const [showKeyboard, setShowKeyboard] = useState(false); // Trạng thái hiện bàn phím
+  const [showKeyboard, setShowKeyboard] = useState(false); 
   
   const [messages, setMessages] = useState<{ role: 'user' | 'model'; text: string }[]>([
     {
@@ -52,12 +59,11 @@ const App: React.FC = () => {
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const keyboardRef = useRef<any>(null); // Ref cho bàn phím ảo
+  const keyboardRef = useRef<any>(null);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAboutVideoFullscreen, setIsAboutVideoFullscreen] = useState(false);
 
-  // --- TRẠNG THÁI ---
   const [isIdle, setIsIdle] = useState(true); 
   const [isUnlocking, setIsUnlocking] = useState(false); 
   const [isSuccess, setIsSuccess] = useState(false);
@@ -94,7 +100,11 @@ const App: React.FC = () => {
       window.speechSynthesis.cancel();
       const text = "Xác thực thành công. Chào mừng đến với gian hàng chuyển đổi số.";
       const utterance = new SpeechSynthesisUtterance(text);
-      // ... (Giữ nguyên logic giọng nói cũ)
+      const voices = window.speechSynthesis.getVoices();
+      const vnVoice = voices.find(v => v.lang.includes('vi'));
+      if (vnVoice) utterance.voice = vnVoice;
+      utterance.rate = 1.2; 
+      utterance.pitch = 1.1;
       window.speechSynthesis.speak(utterance);
     });
   };
@@ -102,7 +112,6 @@ const App: React.FC = () => {
   // --- BỘ ĐẾM GIỜ ---
   const resetIdleTimer = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
-    // Nếu đang hiện bàn phím thì cũng coi như đang dùng -> Không đếm giờ
     if (!isIdle && !isUnlocking && !isSuccess && !iframeUrl && !showKeyboard) {
       timerRef.current = setTimeout(() => {
         console.log("--> Timeout. Kích hoạt Screensaver.");
@@ -110,7 +119,7 @@ const App: React.FC = () => {
         setSelectedProject(null);
         setIframeUrl(null);
         setIsAboutVideoFullscreen(false);
-        setShowKeyboard(false); // Ẩn bàn phím nếu đang hiện
+        setShowKeyboard(false); 
         setIsIdle(true);
       }, IDLE_TIMEOUT_MS);
     }
@@ -137,28 +146,33 @@ const App: React.FC = () => {
     };
   }, [isIdle, isUnlocking, isSuccess, resetIdleTimer]);
 
-  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, showKeyboard]); // Scroll khi bàn phím hiện
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, showKeyboard]);
   
   // --- LOGIC BÀN PHÍM ẢO ---
   const onKeyboardChange = (keyboardInput: string) => {
-    setInput(keyboardInput);
-    // Gõ xong thì focus lại vào ô input thật để con trỏ nhấp nháy (nếu cần)
+    // Xử lý Tiếng Việt trước khi setInput
+    const vietnameseInput = toVietnamese(keyboardInput);
+    
+    setInput(vietnameseInput);
+    // Đồng bộ lại nội dung đã xử lý vào bàn phím ảo (để gõ tiếp đúng vị trí)
+    if(keyboardRef.current && vietnameseInput !== keyboardInput) {
+       keyboardRef.current.setInput(vietnameseInput);
+    }
   };
 
   const onKeyPress = (button: string) => {
     if (button === "{enter}") {
-      handleChatSubmit();
+      // Khi bấm Enter trên bàn phím ảo -> Thêm ký tự xuống dòng
+      setInput(prev => prev + "\n");
     } else if (button === "{shift}" || button === "{lock}") {
-      // Xử lý Shift/Caps (đơn giản hóa: react-simple-keyboard tự xử lý giao diện)
+      // Shift/Caps tự động xử lý
     }
   };
 
-  // Ẩn bàn phím khi bấm ra ngoài
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      // Nếu click không phải vào ô input và không phải vào bàn phím -> Ẩn
-      if (!target.closest('.simple-keyboard') && !target.closest('input[type="text"]')) {
+      if (!target.closest('.simple-keyboard') && !target.closest('textarea')) {
         setShowKeyboard(false);
       }
     };
@@ -179,12 +193,10 @@ const App: React.FC = () => {
     if (e) e.preventDefault();
     if (!input.trim() || isLoading) return;
     
-    // Ẩn bàn phím sau khi gửi
     setShowKeyboard(false);
-
     const userMsg = input;
     setInput('');
-    if(keyboardRef.current) keyboardRef.current.setInput(""); // Xóa input trong bàn phím ảo
+    if(keyboardRef.current) keyboardRef.current.setInput(""); 
 
     setMessages((prev) => [...prev, { role: 'user', text: userMsg }]);
     setIsLoading(true);
@@ -203,15 +215,9 @@ const App: React.FC = () => {
       <div className="fixed inset-0 z-[100000] bg-black flex flex-col items-center justify-center cursor-pointer animate-in fade-in duration-1000 group overflow-hidden" onClick={wakeUp}>
         <video src="/intro.mp4" className="absolute inset-0 w-full h-full object-cover opacity-80" autoPlay loop playsInline />
         <div className="absolute inset-0 bg-black/20" /> 
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-           <div className="w-[500px] h-[500px] border border-primary/20 rounded-full animate-[spin_10s_linear_infinite]" />
-           <div className="absolute w-[450px] h-[450px] border border-dashed border-primary/30 rounded-full animate-[spin_15s_linear_infinite_reverse]" />
-        </div>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none"><div className="w-[500px] h-[500px] border border-primary/20 rounded-full animate-[spin_10s_linear_infinite]" /><div className="absolute w-[450px] h-[450px] border border-dashed border-primary/30 rounded-full animate-[spin_15s_linear_infinite_reverse]" /></div>
         <div className="absolute bottom-24 flex flex-col items-center gap-3 animate-bounce z-10">
-          <div className="p-5 rounded-full bg-black/40 backdrop-blur-xl border border-primary text-primary shadow-[0_0_50px_rgba(14,165,233,0.5)] group-hover:scale-110 transition-transform duration-300 relative overflow-hidden">
-             <Fingerprint size={64} className="animate-pulse" />
-             <div className="absolute top-0 left-0 w-full h-1 bg-white/50 blur-sm animate-[bounce_1.5s_infinite]" />
-          </div>
+          <div className="p-5 rounded-full bg-black/40 backdrop-blur-xl border border-primary text-primary shadow-[0_0_50px_rgba(14,165,233,0.5)] group-hover:scale-110 transition-transform duration-300 relative overflow-hidden"><Fingerprint size={64} className="animate-pulse" /><div className="absolute top-0 left-0 w-full h-1 bg-white/50 blur-sm animate-[bounce_1.5s_infinite]" /></div>
           <div className="bg-black/50 backdrop-blur-md border border-white/20 px-8 py-3 rounded-full text-white font-bold text-sm uppercase tracking-[0.3em] shadow-xl">Chạm để xác thực</div>
         </div>
       </div>
@@ -223,19 +229,10 @@ const App: React.FC = () => {
       <div className="fixed inset-0 z-[100000] bg-black flex flex-col items-center justify-center text-center font-mono overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.1)_1px,transparent_1px)] bg-[size:50px_50px]" />
         <div className="relative mb-8 z-10 animate-in zoom-in duration-500">
-          <div className="relative w-40 h-40 flex items-center justify-center">
-            <div className="absolute inset-0 border-4 border-primary rounded-full animate-[spin_3s_linear_infinite] border-t-transparent border-l-transparent" />
-            <div className="absolute inset-2 border-2 border-secondary rounded-full animate-[spin_4s_linear_infinite_reverse] border-b-transparent" />
-            <Bot size={80} className="text-white drop-shadow-[0_0_20px_rgba(14,165,233,1)] animate-pulse" />
-          </div>
+          <div className="relative w-40 h-40 flex items-center justify-center"><div className="absolute inset-0 border-4 border-primary rounded-full animate-[spin_3s_linear_infinite] border-t-transparent border-l-transparent" /><div className="absolute inset-2 border-2 border-secondary rounded-full animate-[spin_4s_linear_infinite_reverse] border-b-transparent" /><Bot size={80} className="text-white drop-shadow-[0_0_20px_rgba(14,165,233,1)] animate-pulse" /></div>
           <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-32 h-4 bg-primary/50 blur-xl rounded-[100%]" /> 
         </div>
-        <div className="z-10 space-y-4">
-          <h2 className="text-2xl font-bold text-primary tracking-widest animate-pulse uppercase">Đang xác thực dữ liệu...</h2>
-          <div className="flex flex-col gap-1 items-center text-white/50 text-xs">
-            <p>Verifying user biometric...</p><p>Connecting to STEM Server...</p><p>Loading modules...</p>
-          </div>
-        </div>
+        <div className="z-10 space-y-4"><h2 className="text-2xl font-bold text-primary tracking-widest animate-pulse uppercase">Đang xác thực dữ liệu...</h2><div className="flex flex-col gap-1 items-center text-white/50 text-xs"><p>Verifying user biometric...</p><p>Connecting to STEM Server...</p><p>Loading modules...</p></div></div>
       </div>
     );
   }
@@ -245,24 +242,13 @@ const App: React.FC = () => {
       <div className="fixed inset-0 z-[100000] bg-black flex flex-col items-center justify-center text-center font-mono overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(16,185,129,0.2)_0%,_transparent_70%)]" />
         <div className="z-10 animate-in zoom-in duration-300 flex flex-col items-center">
-          <div className="relative mb-6">
-             <div className="absolute inset-0 bg-emerald-500 blur-2xl opacity-50 rounded-full animate-pulse" />
-             <div className="relative w-32 h-32 bg-emerald-500/10 border-4 border-emerald-500 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(16,185,129,0.5)]">
-                <CheckCircle size={64} className="text-emerald-400" />
-             </div>
-             <div className="absolute inset-0 border border-emerald-500/50 rounded-full animate-[ping_1.5s_ease-out_infinite]" />
-          </div>
-          <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-wider mb-2 drop-shadow-2xl">Xác thực thành công</h1>
-          <p className="text-emerald-400 text-lg tracking-[0.2em] font-bold">ACCESS GRANTED</p>
-          <div className="mt-8 text-white/60 animate-bounce">Đang truy cập vào hệ thống...</div>
+          <div className="relative mb-6"><div className="absolute inset-0 bg-emerald-500 blur-2xl opacity-50 rounded-full animate-pulse" /><div className="relative w-32 h-32 bg-emerald-500/10 border-4 border-emerald-500 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(16,185,129,0.5)]"><CheckCircle size={64} className="text-emerald-400" /></div><div className="absolute inset-0 border border-emerald-500/50 rounded-full animate-[ping_1.5s_ease-out_infinite]" /></div>
+          <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-wider mb-2 drop-shadow-2xl">Xác thực thành công</h1><p className="text-emerald-400 text-lg tracking-[0.2em] font-bold">ACCESS GRANTED</p><div className="mt-8 text-white/60 animate-bounce">Đang truy cập vào hệ thống...</div>
         </div>
       </div>
     );
   }
 
-  // ... (Các hàm Render Home, Gallery, Schedule, About GIỮ NGUYÊN)
-  // Tôi rút gọn lại để tiết kiệm không gian, thầy dùng lại code cũ cho các hàm render này nhé.
-  // Nếu thầy cần tôi paste lại full 100% cả các hàm cũ thì báo tôi.
   const renderHome = () => (
     <div className="flex flex-col items-center justify-center min-h-full py-20 px-4 text-center animate-in fade-in zoom-in duration-1000">
       <div className="mb-6 inline-flex items-center justify-center p-3 rounded-full bg-primary/20 border border-primary/50 animate-bounce"><span className="text-primary font-bold tracking-widest uppercase text-sm">Ngày Hội Chuyển Đổi Số 2025</span></div>
@@ -316,7 +302,7 @@ const App: React.FC = () => {
   const renderSchedule = () => (<div className="w-full max-w-4xl mx-auto pt-20 pb-48 px-6 animate-in slide-in-from-right duration-500"><h2 className="text-4xl font-bold text-white mb-12 text-center">Lịch trình hoạt động</h2><div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/20 before:to-transparent">{SCHEDULE.map((item) => (<div key={item.id} className={`relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active`}><div className="flex items-center justify-center w-10 h-10 rounded-full border border-white/20 bg-slate-900 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 group-hover:scale-110 transition-transform"><Clock size={16} className={item.isHighlight ? 'text-accent' : 'text-white/50'} /></div><div className={`w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 rounded-2xl border ${item.isHighlight ? 'bg-gradient-to-br from-indigo-900/50 to-purple-900/50 border-indigo-500/30' : 'bg-white/5 border-white/10'} backdrop-blur-sm shadow-xl transition-all duration-300 hover:-translate-y-1`}><div className="flex items-center justify-between mb-2"><time className="font-mono text-sm text-primary">{item.time}</time>{item.isHighlight && <span className="flex h-2 w-2 rounded-full bg-accent animate-pulse" />}</div><h3 className="text-xl font-bold text-white mb-2">{item.title}</h3><p className="text-white/60 text-sm mb-3">{item.description}</p><div className="flex items-center gap-2 text-xs text-white/40"><MapPin size={12} /> {item.location}</div></div></div>))}</div></div>);
   const renderAbout = () => (<div className="w-full max-w-5xl mx-auto pt-20 pb-48 px-6 animate-in slide-in-from-right duration-500 flex flex-col md:flex-row gap-12 items-center"><div className="w-full md:w-1/2 relative group"><div className="relative aspect-video rounded-3xl border border-white/10 shadow-2xl bg-black flex items-center justify-center overflow-hidden"><video src="/intro.mp4" className="absolute inset-0 w-full h-full object-contain" controls playsInline /><button onClick={() => setIsAboutVideoFullscreen(true)} className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full backdrop-blur-sm border border-white/10 transition-all z-10 opacity-0 group-hover:opacity-100" title="Phóng to video"><Maximize size={20} /></button></div></div><div className="w-full md:w-1/2 space-y-8"><div><h2 className="text-4xl font-bold text-white mb-4">Kết quả thực hiện nhiệm vụ <br /><span className="text-primary text-2xl">Năm học 2024 - 2025</span></h2><p className="text-white/70 text-lg leading-relaxed">Năm học 2024-2025 khép lại, ghi dấu một chặng đường nỗ lực không ngừng của tập thể {SCHOOL_NAME}. Nhà trường đã đạt được nhiều thành tích xuất sắc trong công tác dạy và học, cũng như các hoạt động phong trào, chuyển đổi số và STEM.</p></div><div className="grid grid-cols-2 gap-4"><div className="bg-white/5 border border-white/10 p-5 rounded-2xl"><h4 className="text-3xl font-bold text-primary mb-1">34</h4><p className="text-white/40 text-sm">Giải HSG Thành phố</p></div><div className="bg-white/5 border border-white/10 p-5 rounded-2xl"><h4 className="text-3xl font-bold text-accent mb-1">44</h4><p className="text-white/40 text-sm">Giải HSG Cấp Quận</p></div></div><div className="flex gap-4"><button onClick={() => setCurrentView(AppView.GALLERY)} className="flex items-center gap-2 px-6 py-3 bg-white text-dark font-bold rounded-xl hover:bg-white/90 transition-colors">Xem sản phẩm <ChevronRight size={18} /></button><button onClick={() => setCurrentView(AppView.AI_GUIDE)} className="flex items-center gap-2 px-6 py-3 bg-white/10 text-white font-medium rounded-xl hover:bg-white/20 transition-colors">Hỏi trợ lý AI</button></div></div></div>);
 
-  // --- RENDER CHAT AI VỚI BÀN PHÍM ẢO ---
+  // --- RENDER CHAT AI VỚI BÀN PHÍM ẢO (SỬA ĐỔI) ---
   const renderAIGuide = () => (
     <div className="w-full max-w-3xl mx-auto pt-20 pb-48 px-6 h-full flex flex-col animate-in slide-in-from-bottom duration-500">
       <div className="text-center mb-6 shrink-0">
@@ -334,10 +320,10 @@ const App: React.FC = () => {
           <div ref={chatEndRef} />
         </div>
 
-        {/* BÀN PHÍM ẢO: CHỈ HIỆN KHI CẦN */}
+        {/* BÀN PHÍM ẢO: ĐÃ THÊM NÚT XÓA & ENTER */}
         {showKeyboard && (
           <div className="absolute bottom-[80px] left-0 right-0 bg-slate-900 border-t border-white/20 p-2 z-50 animate-in slide-in-from-bottom duration-300 shadow-2xl">
-            <div className="simple-keyboard-theme-dark text-black"> {/* Class text-black để chữ trên phím màu đen dễ đọc */}
+            <div className="simple-keyboard-theme-dark text-black"> 
                 <Keyboard
                   keyboardRef={r => (keyboardRef.current = r)}
                   onChange={onKeyboardChange}
@@ -345,14 +331,14 @@ const App: React.FC = () => {
                   inputName="chatInput"
                   layout={{
                     default: [
-                      "1 2 3 4 5 6 7 8 9 0 - =",
+                      "1 2 3 4 5 6 7 8 9 0 - = {bksp}", // Thêm nút xóa (Backspace) vào hàng số
                       "q w e r t y u i o p [ ] \\",
                       "a s d f g h j k l ; '",
                       "{shift} z x c v b n m , . /",
-                      "{space} {enter}" // Nút Enter để gửi
+                      "{space} {enter}" // Nút Enter bây giờ dùng để xuống dòng
                     ],
                     shift: [
-                      "! @ # $ % ^ & * ( ) _ +",
+                      "! @ # $ % ^ & * ( ) _ + {bksp}",
                       "Q W E R T Y U I O P { } |",
                       "A S D F G H J K L : \"",
                       "{shift} Z X C V B N M < > ?",
@@ -360,10 +346,10 @@ const App: React.FC = () => {
                     ]
                   }}
                   display={{
-                    "{enter}": "GỬI TIN NHẮN",
+                    "{bksp}": "⌫ Xóa",
+                    "{enter}": "↵ Xuống dòng", // Đổi tên nút thành Xuống dòng
                     "{shift}": "⇧ Shift",
                     "{space}": "Dấu cách",
-                    "{bksp}": "⌫"
                   }}
                 />
             </div>
@@ -372,21 +358,25 @@ const App: React.FC = () => {
 
         <form onSubmit={handleChatSubmit} className="p-4 bg-white/5 border-t border-white/10 flex gap-3 shrink-0 relative z-50">
           <div className="flex-1 relative">
-             <input
-                type="text"
+             {/* ĐỔI INPUT THÀNH TEXTAREA ĐỂ HỖ TRỢ XUỐNG DÒNG */}
+             <textarea
                 value={input}
-                onFocus={() => setShowKeyboard(true)} // Chạm vào là hiện bàn phím
+                onFocus={() => setShowKeyboard(true)}
                 onChange={(e) => {
-                    // Logic gõ TELEX đơn giản
-                    const val = e.target.value;
-                    // Nếu người dùng gõ từ bàn phím thật, vẫn cho phép
+                    const val = toVietnamese(e.target.value); // Xử lý gõ Telex
                     setInput(val);
                     if(keyboardRef.current) keyboardRef.current.setInput(val);
                 }}
-                placeholder="Nhập câu hỏi..."
-                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-primary/50 focus:bg-black/40 transition-all"
+                onKeyDown={(e) => {
+                  // Nếu dùng bàn phím thật, bấm Shift+Enter để xuống dòng, Enter để gửi
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleChatSubmit();
+                  }
+                }}
+                placeholder="Nhập câu hỏi (gõ aa->â, dd->đ)..."
+                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-primary/50 focus:bg-black/40 transition-all resize-none h-14 scrollbar-hide"
               />
-              {/* Nút ẩn bàn phím thủ công */}
               {showKeyboard && (
                   <button 
                     type="button" 
@@ -397,7 +387,7 @@ const App: React.FC = () => {
                   </button>
               )}
           </div>
-          <button type="submit" disabled={isLoading || !input.trim()} className="bg-primary hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed text-white p-3 rounded-xl transition-colors flex items-center justify-center w-14"><Send size={20} /></button>
+          <button type="submit" disabled={isLoading || !input.trim()} className="bg-primary hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed text-white p-3 rounded-xl transition-colors flex items-center justify-center w-14 h-14"><Send size={24} /></button>
         </form>
       </div>
       <div className="mt-2 flex flex-wrap justify-center gap-2 shrink-0">
@@ -457,13 +447,23 @@ const App: React.FC = () => {
                         <img src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(iframeUrl)}`} alt="Scan QR" className="w-64 h-64 md:w-80 md:h-80 object-contain z-10 relative" />
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_15px_rgba(239,68,68,1)] z-20 animate-[bounce_2s_infinite]" />
                     </div>
-                    <div className="absolute -bottom-10 w-full text-center"><span className="text-primary font-mono text-xs tracking-[0.3em] animate-pulse">SCANNING...</span></div>
+                    
+                    <div className="absolute -bottom-10 w-full text-center">
+                        <span className="text-primary font-mono text-xs tracking-[0.3em] animate-pulse">SCANNING...</span>
+                    </div>
                 </div>
+
                 <div className="text-center md:text-left max-w-md space-y-6">
-                  <div className="flex items-center justify-center md:justify-start gap-3 text-primary mb-2"><div className="p-2 bg-primary/20 rounded-lg"><Scan size={32} /></div><span className="text-xl font-bold uppercase tracking-widest">Truy cập bảo mật</span></div>
+                  <div className="flex items-center justify-center md:justify-start gap-3 text-primary mb-2">
+                    <div className="p-2 bg-primary/20 rounded-lg"><Scan size={32} /></div>
+                    <span className="text-xl font-bold uppercase tracking-widest">Truy cập bảo mật</span>
+                  </div>
                   <h3 className="text-3xl md:text-4xl font-black text-white leading-tight">Trải nghiệm sản phẩm trên <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">Thiết bị di động</span></h3>
                   <p className="text-white/60 text-lg leading-relaxed">Trang web này sử dụng công nghệ bảo mật cao của Google. Vui lòng quét mã để mở khóa nội dung đầy đủ trên điện thoại của bạn.</p>
-                  <div className="flex items-center justify-center md:justify-start gap-4 pt-2"><div className="flex items-center gap-2 text-sm text-white/40 bg-white/5 px-4 py-2 rounded-full border border-white/5"><Wifi size={16} /> <span>Yêu cầu kết nối mạng</span></div><div className="flex items-center gap-2 text-sm text-white/40 bg-white/5 px-4 py-2 rounded-full border border-white/5"><Smartphone size={16} /> <span>Hỗ trợ iOS/Android</span></div></div>
+                  <div className="flex items-center justify-center md:justify-start gap-4 pt-2">
+                     <div className="flex items-center gap-2 text-sm text-white/40 bg-white/5 px-4 py-2 rounded-full border border-white/5"><Wifi size={16} /> <span>Yêu cầu kết nối mạng</span></div>
+                     <div className="flex items-center gap-2 text-sm text-white/40 bg-white/5 px-4 py-2 rounded-full border border-white/5"><Smartphone size={16} /> <span>Hỗ trợ iOS/Android</span></div>
+                  </div>
                 </div>
               </div>
             ) : (
