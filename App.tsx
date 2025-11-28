@@ -20,8 +20,6 @@ const IDLE_TIMEOUT_MS = 30000;
 // --- HÀM XỬ LÝ GÕ TIẾNG VIỆT (TELEX FULL) ---
 const toVietnamese = (str: string) => {
   let result = str;
-  
-  // 1. Xử lý Nguyên âm & Ký tự đặc biệt
   result = result.replace(/aa/g, "â").replace(/AA/g, "Â");
   result = result.replace(/aw/g, "ă").replace(/AW/g, "Ă");
   result = result.replace(/ee/g, "ê").replace(/EE/g, "Ê");
@@ -30,7 +28,6 @@ const toVietnamese = (str: string) => {
   result = result.replace(/uw/g, "ư").replace(/UW/g, "Ư");
   result = result.replace(/dd/g, "đ").replace(/DD/g, "Đ");
   
-  // 2. Xử lý Dấu thanh (s, f, r, x, j)
   const vowelTable = [
     ['a', 'á', 'à', 'ả', 'ã', 'ạ'], ['ă', 'ắ', 'ằ', 'ẳ', 'ẵ', 'ặ'], ['â', 'ấ', 'ầ', 'ẩ', 'ẫ', 'ậ'],
     ['e', 'é', 'è', 'ẻ', 'ẽ', 'ẹ'], ['ê', 'ế', 'ề', 'ể', 'ễ', 'ệ'],
@@ -68,7 +65,7 @@ const App: React.FC = () => {
   
   // Chat & Keyboard State
   const [input, setInput] = useState('');
-  const [showKeyboard, setShowKeyboard] = useState(false); 
+  const [showKeyboard, setShowKeyboard] = useState(false); // Mặc định là TẮT
   
   const [messages, setMessages] = useState<{ role: 'user' | 'model'; text: string }[]>([
     {
@@ -171,29 +168,20 @@ const App: React.FC = () => {
   const onKeyboardChange = (keyboardInput: string) => {
     const vietnameseInput = toVietnamese(keyboardInput);
     setInput(vietnameseInput);
-    
-    // Đồng bộ lại input nếu có thay đổi do Telex
     if(keyboardRef.current && vietnameseInput !== keyboardInput) {
-       // Chỉ set lại nếu khác biệt để tránh loop
-       // Lưu ý: với react-simple-keyboard đôi khi setInput trực tiếp trong onChange
-       // có thể gây mất đồng bộ con trỏ, nhưng ở đây ta chấp nhận để gõ được tiếng Việt.
        keyboardRef.current.setInput(vietnameseInput);
     }
   };
 
   const onKeyPress = (button: string) => {
-    // XỬ LÝ NÚT ENTER -> XUỐNG DÒNG
     if (button === "{enter}") {
       const newValue = input + "\n";
       setInput(newValue);
       if(keyboardRef.current) keyboardRef.current.setInput(newValue);
     }
-    // XỬ LÝ NÚT XÓA (BACKSPACE) THỦ CÔNG
     else if (button === "{bksp}") {
-      // Cắt bỏ ký tự cuối cùng
       const newValue = input.slice(0, -1);
       setInput(newValue);
-      // Đồng bộ lại với bàn phím ảo để nó biết chuỗi đã ngắn đi
       if(keyboardRef.current) keyboardRef.current.setInput(newValue);
     }
   };
@@ -201,7 +189,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.closest('.simple-keyboard') && !target.closest('textarea')) {
+      if (!target.closest('.simple-keyboard') && !target.closest('textarea') && !target.closest('.keyboard-toggle-btn')) {
         setShowKeyboard(false);
       }
     };
@@ -238,7 +226,7 @@ const App: React.FC = () => {
     return url.includes('sites.google.com') || url.includes('canva.com') || url.includes('drive.google.com');
   };
 
-  // ... (Giữ nguyên các hàm Render Màn hình chờ, Unlock, Success...)
+  // ... (Các phần Render giữ nguyên như cũ)
   if (isIdle) {
     return (
       <div className="fixed inset-0 z-[100000] bg-black flex flex-col items-center justify-center cursor-pointer animate-in fade-in duration-1000 group overflow-hidden" onClick={wakeUp}>
@@ -331,7 +319,7 @@ const App: React.FC = () => {
   const renderSchedule = () => (<div className="w-full max-w-4xl mx-auto pt-20 pb-48 px-6 animate-in slide-in-from-right duration-500"><h2 className="text-4xl font-bold text-white mb-12 text-center">Lịch trình hoạt động</h2><div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/20 before:to-transparent">{SCHEDULE.map((item) => (<div key={item.id} className={`relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active`}><div className="flex items-center justify-center w-10 h-10 rounded-full border border-white/20 bg-slate-900 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 group-hover:scale-110 transition-transform"><Clock size={16} className={item.isHighlight ? 'text-accent' : 'text-white/50'} /></div><div className={`w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 rounded-2xl border ${item.isHighlight ? 'bg-gradient-to-br from-indigo-900/50 to-purple-900/50 border-indigo-500/30' : 'bg-white/5 border-white/10'} backdrop-blur-sm shadow-xl transition-all duration-300 hover:-translate-y-1`}><div className="flex items-center justify-between mb-2"><time className="font-mono text-sm text-primary">{item.time}</time>{item.isHighlight && <span className="flex h-2 w-2 rounded-full bg-accent animate-pulse" />}</div><h3 className="text-xl font-bold text-white mb-2">{item.title}</h3><p className="text-white/60 text-sm mb-3">{item.description}</p><div className="flex items-center gap-2 text-xs text-white/40"><MapPin size={12} /> {item.location}</div></div></div>))}</div></div>);
   const renderAbout = () => (<div className="w-full max-w-5xl mx-auto pt-20 pb-48 px-6 animate-in slide-in-from-right duration-500 flex flex-col md:flex-row gap-12 items-center"><div className="w-full md:w-1/2 relative group"><div className="relative aspect-video rounded-3xl border border-white/10 shadow-2xl bg-black flex items-center justify-center overflow-hidden"><video src="/intro.mp4" className="absolute inset-0 w-full h-full object-contain" controls playsInline /><button onClick={() => setIsAboutVideoFullscreen(true)} className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full backdrop-blur-sm border border-white/10 transition-all z-10 opacity-0 group-hover:opacity-100" title="Phóng to video"><Maximize size={20} /></button></div></div><div className="w-full md:w-1/2 space-y-8"><div><h2 className="text-4xl font-bold text-white mb-4">Kết quả thực hiện nhiệm vụ <br /><span className="text-primary text-2xl">Năm học 2024 - 2025</span></h2><p className="text-white/70 text-lg leading-relaxed">Năm học 2024-2025 khép lại, ghi dấu một chặng đường nỗ lực không ngừng của tập thể {SCHOOL_NAME}. Nhà trường đã đạt được nhiều thành tích xuất sắc trong công tác dạy và học, cũng như các hoạt động phong trào, chuyển đổi số và STEM.</p></div><div className="grid grid-cols-2 gap-4"><div className="bg-white/5 border border-white/10 p-5 rounded-2xl"><h4 className="text-3xl font-bold text-primary mb-1">34</h4><p className="text-white/40 text-sm">Giải HSG Thành phố</p></div><div className="bg-white/5 border border-white/10 p-5 rounded-2xl"><h4 className="text-3xl font-bold text-accent mb-1">44</h4><p className="text-white/40 text-sm">Giải HSG Cấp Quận</p></div></div><div className="flex gap-4"><button onClick={() => setCurrentView(AppView.GALLERY)} className="flex items-center gap-2 px-6 py-3 bg-white text-dark font-bold rounded-xl hover:bg-white/90 transition-colors">Xem sản phẩm <ChevronRight size={18} /></button><button onClick={() => setCurrentView(AppView.AI_GUIDE)} className="flex items-center gap-2 px-6 py-3 bg-white/10 text-white font-medium rounded-xl hover:bg-white/20 transition-colors">Hỏi trợ lý AI</button></div></div></div>);
 
-  // --- RENDER CHAT AI VỚI BÀN PHÍM ẢO ---
+  // --- RENDER CHAT AI VỚI BÀN PHÍM ẢO (SỬA ĐỔI) ---
   const renderAIGuide = () => (
     <div className="w-full max-w-3xl mx-auto pt-20 pb-48 px-6 h-full flex flex-col animate-in slide-in-from-bottom duration-500">
       <div className="text-center mb-6 shrink-0">
@@ -349,7 +337,7 @@ const App: React.FC = () => {
           <div ref={chatEndRef} />
         </div>
 
-        {/* BÀN PHÍM ẢO: ĐÃ THÊM NÚT XÓA & ENTER & GÕ TIẾNG VIỆT */}
+        {/* BÀN PHÍM ẢO: TẮT ONFOCUS TỰ ĐỘNG, CHỈ HIỆN KHI CẦN */}
         {showKeyboard && (
           <div className="absolute bottom-[80px] left-0 right-0 bg-slate-900 border-t border-white/20 p-2 z-50 animate-in slide-in-from-bottom duration-300 shadow-2xl">
             <div className="simple-keyboard-theme-dark text-black"> 
@@ -387,12 +375,12 @@ const App: React.FC = () => {
 
         <form onSubmit={handleChatSubmit} className="p-4 bg-white/5 border-t border-white/10 flex gap-3 shrink-0 relative z-50">
           <div className="flex-1 relative">
-             {/* ĐỔI INPUT THÀNH TEXTAREA ĐỂ HỖ TRỢ XUỐNG DÒNG */}
+             {/* TEXTAREA: BỎ ONFOCUS AUTO SHOW */}
              <textarea
                 value={input}
-                onFocus={() => setShowKeyboard(true)}
+                onFocus={() => {}} // KHÔNG TỰ ĐỘNG HIỆN BÀN PHÍM NỮA
                 onChange={(e) => {
-                    const val = toVietnamese(e.target.value); // Xử lý gõ Telex
+                    const val = toVietnamese(e.target.value); 
                     setInput(val);
                     if(keyboardRef.current) keyboardRef.current.setInput(val);
                 }}
@@ -402,18 +390,18 @@ const App: React.FC = () => {
                     handleChatSubmit();
                   }
                 }}
-                placeholder="Nhập câu hỏi (gõ aa->â, dd->đ, j->ạ, s->á...)"
+                placeholder="Nhập câu hỏi (gõ aa->â, dd->đ...)"
                 className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-primary/50 focus:bg-black/40 transition-all resize-none h-14 scrollbar-hide"
               />
-              {showKeyboard && (
-                  <button 
-                    type="button" 
-                    onClick={() => setShowKeyboard(false)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-white/50 hover:text-white"
-                  >
-                    <KeyboardIcon size={16} />
-                  </button>
-              )}
+              {/* NÚT BẬT/TẮT BÀN PHÍM THỦ CÔNG */}
+              <button 
+                type="button" 
+                onClick={() => setShowKeyboard(!showKeyboard)} // Bấm là hiện/ẩn
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-white/50 hover:text-white bg-white/5 rounded-lg keyboard-toggle-btn"
+                title="Bật/Tắt bàn phím ảo"
+              >
+                <KeyboardIcon size={20} className={showKeyboard ? "text-primary" : ""} />
+              </button>
           </div>
           <button type="submit" disabled={isLoading || !input.trim()} className="bg-primary hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed text-white p-3 rounded-xl transition-colors flex items-center justify-center w-14 h-14"><Send size={24} /></button>
         </form>
