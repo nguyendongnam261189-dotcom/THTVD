@@ -391,7 +391,38 @@ const App: React.FC = () => {
   };
 
   const renderSchedule = () => (<div className="w-full max-w-4xl mx-auto pt-20 pb-48 px-6 animate-in slide-in-from-right duration-500"><h2 className="text-4xl font-bold text-white mb-12 text-center">Lịch trình hoạt động</h2><div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/20 before:to-transparent">{SCHEDULE.map((item) => (<div key={item.id} className={`relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active`}><div className="flex items-center justify-center w-10 h-10 rounded-full border border-white/20 bg-slate-900 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 group-hover:scale-110 transition-transform"><Clock size={16} className={item.isHighlight ? 'text-accent' : 'text-white/50'} /></div><div className={`w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 rounded-2xl border ${item.isHighlight ? 'bg-gradient-to-br from-indigo-900/50 to-purple-900/50 border-indigo-500/30' : 'bg-white/5 border-white/10'} backdrop-blur-sm shadow-xl transition-all duration-300 hover:-translate-y-1`}><div className="flex items-center justify-between mb-2"><time className="font-mono text-sm text-primary">{item.time}</time>{item.isHighlight && <span className="flex h-2 w-2 rounded-full bg-accent animate-pulse" />}</div><h3 className="text-xl font-bold text-white mb-2">{item.title}</h3><p className="text-white/60 text-sm mb-3">{item.description}</p><div className="flex items-center gap-2 text-xs text-white/40"><MapPin size={12} /> {item.location}</div></div></div>))}</div></div>);
-  const renderAbout = () => (<div className="w-full max-w-5xl mx-auto pt-20 pb-48 px-6 animate-in slide-in-from-right duration-500 flex flex-col md:flex-row gap-12 items-center"><div className="w-full md:w-1/2 relative group"><div className="relative aspect-video rounded-3xl border border-white/10 shadow-2xl bg-black flex items-center justify-center overflow-hidden"><video src="/intro.mp4" className="absolute inset-0 w-full h-full object-contain" controls playsInline /><button onClick={() => setIsAboutVideoFullscreen(true)} className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full backdrop-blur-sm border border-white/10 transition-all z-10 opacity-0 group-hover:opacity-100" title="Phóng to video"><Maximize size={20} /></button></div></div><div className="w-full md:w-1/2 space-y-8"><div><h2 className="text-4xl font-bold text-white mb-4">Kết quả thực hiện nhiệm vụ <br /><span className="text-primary text-2xl">Năm học 2024 - 2025</span></h2><p className="text-white/70 text-lg leading-relaxed">Năm học 2024-2025 khép lại, ghi dấu một chặng đường nỗ lực không ngừng của tập thể {SCHOOL_NAME}. Nhà trường đã đạt được nhiều thành tích xuất sắc trong công tác dạy và học, cũng như các hoạt động phong trào, chuyển đổi số và STEM.</p></div><div className="grid grid-cols-2 gap-4"><div className="bg-white/5 border border-white/10 p-5 rounded-2xl"><h4 className="text-3xl font-bold text-primary mb-1">34</h4><p className="text-white/40 text-sm">Giải HSG Thành phố</p></div><div className="bg-white/5 border border-white/10 p-5 rounded-2xl"><h4 className="text-3xl font-bold text-accent mb-1">44</h4><p className="text-white/40 text-sm">Giải HSG Cấp Quận</p></div></div><div className="flex gap-4"><button onClick={() => setCurrentView(AppView.GALLERY)} className="flex items-center gap-2 px-6 py-3 bg-white text-dark font-bold rounded-xl hover:bg-white/90 transition-colors">Xem sản phẩm <ChevronRight size={18} /></button><button onClick={() => setCurrentView(AppView.AI_GUIDE)} className="flex items-center gap-2 px-6 py-3 bg-white/10 text-white font-medium rounded-xl hover:bg-white/20 transition-colors">Hỏi trợ lý AI</button></div></div></div>);
+  const renderAbout = () => (
+    <div className="w-full max-w-5xl mx-auto pt-20 pb-48 px-6 animate-in slide-in-from-right duration-500 flex flex-col md:flex-row gap-12 items-center">
+      <div className="w-full md:w-1/2 relative group">
+        <div className={`transition-all duration-300 border border-white/10 shadow-2xl bg-black flex items-center justify-center overflow-hidden ${isAboutVideoFullscreen ? 'fixed inset-0 z-[9999] w-screen h-screen rounded-none' : 'relative aspect-video rounded-3xl'}`}>
+            <video src="/intro.mp4" className="absolute inset-0 w-full h-full object-contain" controls playsInline />
+            <button onClick={() => setIsAboutVideoFullscreen((prev) => !prev)} className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full backdrop-blur-sm border border-white/10 transition-all z-[10000]" title={isAboutVideoFullscreen ? 'Thu nhỏ video' : 'Phóng to video trong ứng dụng'}>{isAboutVideoFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}</button>
+        </div>
+      </div>
+      <div className="w-full md:w-1/2 space-y-8">
+        <div>
+          <h2 className="text-4xl font-bold text-white mb-4">Khát vọng tiên phong<br /><span className="text-primary text-2xl">Chuyển đổi số 2025-2026</span></h2>
+          <p className="text-white/70 text-lg leading-relaxed">
+            Trường THCS Nguyễn Bỉnh Khiêm khẳng định vị thế tiên phong trong chuyển đổi số: từ số hóa quản lý (EnetViet), dạy học (Microsoft Teams) đến kiểm tra đánh giá. Đặc biệt, <span className="text-white font-bold">100% giáo viên ứng dụng AI</span> vào giảng dạy và xây dựng kho học liệu số phong phú.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white/5 border border-white/10 p-5 rounded-2xl">
+            <h4 className="text-3xl font-bold text-primary mb-1">Giải Nhất</h4>
+            <p className="text-white/40 text-sm">Hội thi CĐS Cấp Phường</p>
+          </div>
+          <div className="bg-white/5 border border-white/10 p-5 rounded-2xl">
+            <h4 className="text-3xl font-bold text-accent mb-1">Giải Nhì</h4>
+            <p className="text-white/40 text-sm">Ngày hội STEM Cấp Quận</p>
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <button onClick={() => setCurrentView(AppView.GALLERY)} className="flex items-center gap-2 px-6 py-3 bg-white text-dark font-bold rounded-xl hover:bg-white/90 transition-colors">Xem sản phẩm <ChevronRight size={18} /></button>
+          <button onClick={() => setCurrentView(AppView.AI_GUIDE)} className="flex items-center gap-2 px-6 py-3 bg-white/10 text-white font-medium rounded-xl hover:bg-white/20 transition-colors">Hỏi trợ lý AI</button>
+        </div>
+      </div>
+    </div>
+  );
 
   // --- RENDER CHAT AI VỚI BÀN PHÍM ẢO ---
   const renderAIGuide = () => (
