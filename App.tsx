@@ -95,6 +95,7 @@ const App: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAboutVideoFullscreen, setIsAboutVideoFullscreen] = useState(false);
 
+  // Trạng thái hệ thống
   const [isIdle, setIsIdle] = useState(true); 
   const [isUnlocking, setIsUnlocking] = useState(false); 
   const [isSuccess, setIsSuccess] = useState(false);
@@ -172,10 +173,8 @@ const App: React.FC = () => {
   };
 
   const handleClaimPrize = () => {
-    // Tắt thông báo trúng thưởng
     setWinner(null);
-    // Tắt luôn modal vòng quay
-    setIsWheelOpen(false);
+    setIsWheelOpen(false); // Đóng luôn vòng quay khi nhận thưởng
   };
 
   // --- CÁC LOGIC KHÁC ---
@@ -246,6 +245,7 @@ const App: React.FC = () => {
     });
   };
 
+  // --- BỘ ĐẾM GIỜ ---
   const resetIdleTimer = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
     if (!isIdle && !isUnlocking && !isSuccess && !iframeUrl && !showKeyboard && !isGuestbookOpen && !isWheelOpen) {
@@ -571,14 +571,15 @@ const App: React.FC = () => {
       {/* MODAL VÒNG QUAY MAY MẮN */}
       {isWheelOpen && (
         <div className="fixed inset-0 z-[90] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in zoom-in duration-300">
-           <div className="relative w-full max-w-lg flex flex-col items-center">
-              <button 
-                 onClick={() => setIsWheelOpen(false)}
-                 className="absolute -top-12 right-0 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
-              >
-                 <X size={24} />
-              </button>
+           {/* Nút đóng góc trên phải màn hình (ĐÃ SỬA Z-INDEX & VỊ TRÍ) */}
+           <button 
+               onClick={() => setIsWheelOpen(false)}
+               className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors z-[100]"
+           >
+               <X size={32} />
+           </button>
 
+           <div className="relative w-full max-w-lg flex flex-col items-center mt-10">
               {/* Header: Click 5 lần để sửa quà */}
               <div 
                 className="text-center mb-8 cursor-pointer select-none"
@@ -617,7 +618,7 @@ const App: React.FC = () => {
                        <div key={deg} className="absolute top-0 left-1/2 w-0.5 h-1/2 bg-white/20 origin-bottom" style={{ transform: `translateX(-50%) rotate(${deg}deg)` }} />
                     ))}
                     
-                    {/* Tên quà (Cần xoay theo từng ô) */}
+                    {/* Tên quà */}
                     {prizes.map((prize, i) => (
                        <div 
                           key={i} 
@@ -652,7 +653,7 @@ const App: React.FC = () => {
                           <input 
                             key={i}
                             value={p}
-                            onChange={(e) => handlePrizeChange(i, e.target.value)} // Gõ tiếng Việt luôn
+                            onChange={(e) => handlePrizeChange(i, e.target.value)} 
                             className="bg-black/30 border border-white/10 rounded px-2 py-1 text-white text-xs focus:border-yellow-500 outline-none"
                           />
                        ))}
@@ -663,9 +664,9 @@ const App: React.FC = () => {
                  </div>
               )}
 
-              {/* Thông báo trúng thưởng (ĐÃ SỬA Z-INDEX & NÚT ĐÓNG) */}
+              {/* Thông báo trúng thưởng (ĐÃ ĐƯA LÊN CAO NHẤT) */}
               {winner && (
-                 <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-3xl animate-in zoom-in duration-300">
+                 <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-3xl animate-in zoom-in duration-300">
                     <div className="bg-white text-center p-8 rounded-3xl shadow-2xl border-4 border-yellow-400 relative overflow-hidden max-w-sm w-full mx-4">
                        <div className="absolute inset-0 bg-yellow-400/20 animate-pulse" />
                        <Sparkles size={48} className="text-yellow-500 mx-auto mb-2 animate-bounce relative z-10" />
