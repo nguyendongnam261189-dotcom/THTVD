@@ -140,21 +140,29 @@ const App: React.FC = () => {
   useEffect(() => { localStorage.setItem('lucky_wheel_prizes', JSON.stringify(prizes)); }, [prizes]);
 
   // --- LOGIC VÒNG QUAY ---
-  const handleSpinWheel = () => {
+   const handleSpinWheel = () => {
     if (isSpinning) return;
     setWinner(null);
     setIsSpinning(true);
     
+    // Quay ngẫu nhiên thêm ít nhất 5 vòng (1800 độ) + một góc ngẫu nhiên (0-360)
     const newRotation = wheelRotation + 1800 + Math.floor(Math.random() * 360);
     setWheelRotation(newRotation);
 
     setTimeout(() => {
       setIsSpinning(false);
+      // Tính toán kết quả dựa trên góc dừng thực tế
+      // Công thức này đảm bảo kim chỉ vào đâu thì hiện tên đó
       const actualDeg = newRotation % 360;
-      const sliceSize = 360 / prizes.length;
+      const sliceSize = 360 / prizes.length; // 45 độ
+      
+      // Do kim chỉ ở vị trí 12h (Top), ta cần bù trừ góc
+      // Công thức chuẩn cho kim 12h:
       const prizeIndex = Math.floor(((360 - actualDeg + (sliceSize/2)) % 360) / sliceSize);
+      
       setWinner(prizes[prizeIndex]);
     }, 4000);
+  };
   };
 
   const handleWheelTitleClick = () => {
