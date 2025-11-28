@@ -95,7 +95,6 @@ const App: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAboutVideoFullscreen, setIsAboutVideoFullscreen] = useState(false);
 
-  // Trạng thái hệ thống
   const [isIdle, setIsIdle] = useState(true); 
   const [isUnlocking, setIsUnlocking] = useState(false); 
   const [isSuccess, setIsSuccess] = useState(false);
@@ -245,7 +244,6 @@ const App: React.FC = () => {
     });
   };
 
-  // --- BỘ ĐẾM GIỜ ---
   const resetIdleTimer = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
     if (!isIdle && !isUnlocking && !isSuccess && !iframeUrl && !showKeyboard && !isGuestbookOpen && !isWheelOpen) {
@@ -582,10 +580,11 @@ const App: React.FC = () => {
            <div className="relative w-full max-w-lg flex flex-col items-center mt-10">
               {/* Header: Click 5 lần để sửa quà */}
               <div 
-                className="text-center mb-8 cursor-pointer select-none"
+                className="text-center mb-8 cursor-pointer select-none relative z-10"
                 onClick={handleWheelTitleClick}
               >
-                <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 drop-shadow-sm uppercase tracking-widest">
+                {/* Đã thêm padding-top và leading-relaxed để không mất dấu sắc */}
+                <h2 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 drop-shadow-sm uppercase tracking-widest py-2 leading-relaxed">
                   Vòng Quay May Mắn
                 </h2>
                 {isWheelAdmin && <span className="inline-block mt-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">ADMIN EDIT</span>}
