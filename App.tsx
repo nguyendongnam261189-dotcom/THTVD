@@ -70,7 +70,6 @@ const toVietnamese = (str: string) => {
   return result; 
 };
 
-// MÀU SẮC VÒNG QUAY
 const SEGMENT_COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#f97316', '#06b6d4', '#ec4899'];
 
 const App: React.FC = () => {
@@ -96,7 +95,6 @@ const App: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAboutVideoFullscreen, setIsAboutVideoFullscreen] = useState(false);
 
-  // Trạng thái hệ thống
   const [isIdle, setIsIdle] = useState(true); 
   const [isUnlocking, setIsUnlocking] = useState(false); 
   const [isSuccess, setIsSuccess] = useState(false);
@@ -174,8 +172,10 @@ const App: React.FC = () => {
   };
 
   const handleClaimPrize = () => {
+    // Tắt thông báo trúng thưởng
     setWinner(null);
-    setIsWheelOpen(false); // Đóng luôn vòng quay khi nhận thưởng
+    // Tắt luôn modal vòng quay
+    setIsWheelOpen(false);
   };
 
   // --- CÁC LOGIC KHÁC ---
@@ -246,7 +246,6 @@ const App: React.FC = () => {
     });
   };
 
-  // --- BỘ ĐẾM GIỜ ---
   const resetIdleTimer = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
     if (!isIdle && !isUnlocking && !isSuccess && !iframeUrl && !showKeyboard && !isGuestbookOpen && !isWheelOpen) {
@@ -507,6 +506,7 @@ const App: React.FC = () => {
         {currentView === AppView.ABOUT && renderAbout()}
       </main>
 
+      {/* Popup Video Intro */}
       {isAboutVideoFullscreen && (
         <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center animate-in fade-in duration-300">
           <button onClick={() => setIsAboutVideoFullscreen(false)} className="absolute top-6 right-6 z-[10000] p-3 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md transition-all border border-white/20" title="Đóng"><Minimize size={24} /></button>
@@ -514,6 +514,7 @@ const App: React.FC = () => {
         </div>
       )}
 
+      {/* Popup Iframe Sản phẩm */}
       {iframeUrl && (
         <div className="fixed inset-0 z-[70] bg-black flex flex-col animate-in fade-in duration-300">
           <div className="flex items-center justify-between p-4 bg-slate-900 border-b border-white/10 shrink-0">
@@ -561,7 +562,7 @@ const App: React.FC = () => {
         <button 
           onClick={() => setIsWheelOpen(true)}
           className="fixed bottom-32 right-6 z-50 p-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full shadow-[0_0_40px_rgba(234,179,8,0.6)] animate-bounce hover:scale-110 transition-transform"
-          title="Vòng quay may mắn"
+          title="Vòng Quay May Mắn"
         >
           <Gift size={32} className="text-white" />
         </button>
@@ -662,18 +663,18 @@ const App: React.FC = () => {
                  </div>
               )}
 
-              {/* Thông báo trúng thưởng */}
+              {/* Thông báo trúng thưởng (ĐÃ SỬA Z-INDEX & NÚT ĐÓNG) */}
               {winner && (
-                 <div className="absolute inset-0 flex items-center justify-center z-[100] animate-in zoom-in duration-300">
-                    <div className="bg-white text-center p-8 rounded-3xl shadow-2xl border-4 border-yellow-400 relative overflow-hidden">
+                 <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-3xl animate-in zoom-in duration-300">
+                    <div className="bg-white text-center p-8 rounded-3xl shadow-2xl border-4 border-yellow-400 relative overflow-hidden max-w-sm w-full mx-4">
                        <div className="absolute inset-0 bg-yellow-400/20 animate-pulse" />
-                       <Sparkles size={48} className="text-yellow-500 mx-auto mb-2 animate-bounce" />
-                       <h3 className="text-2xl font-bold text-slate-900 mb-1">Chúc Mừng!</h3>
-                       <p className="text-slate-500 mb-4">Bạn đã nhận được:</p>
-                       <div className="text-3xl font-black text-red-500 uppercase tracking-wider mb-6">{winner}</div>
+                       <Sparkles size={48} className="text-yellow-500 mx-auto mb-2 animate-bounce relative z-10" />
+                       <h3 className="text-2xl font-bold text-slate-900 mb-1 relative z-10">Chúc Mừng!</h3>
+                       <p className="text-slate-500 mb-4 relative z-10">Bạn đã nhận được:</p>
+                       <div className="text-3xl font-black text-red-500 uppercase tracking-wider mb-6 relative z-10 break-words">{winner}</div>
                        <button 
                           onClick={handleClaimPrize}
-                          className="bg-slate-900 text-white px-6 py-2 rounded-full font-bold hover:bg-slate-800 transition-colors shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95"
+                          className="relative z-50 bg-slate-900 text-white px-6 py-3 rounded-full font-bold hover:bg-slate-800 transition-colors shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95 cursor-pointer pointer-events-auto"
                        >
                           Nhận Thưởng & Đóng
                        </button>
@@ -684,6 +685,7 @@ const App: React.FC = () => {
         </div>
       )}
 
+      {/* Chỉ hiện thanh Navigation khi không ở màn hình chờ và không mở khóa */}
       {!isIdle && !isUnlocking && !isSuccess && (
          <Navigation currentView={currentView} onNavigate={setCurrentView} />
       )}
