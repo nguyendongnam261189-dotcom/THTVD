@@ -140,7 +140,8 @@ const App: React.FC = () => {
   useEffect(() => { localStorage.setItem('lucky_wheel_prizes', JSON.stringify(prizes)); }, [prizes]);
 
   // --- LOGIC VÒNG QUAY ---
-   const handleSpinWheel = () => {
+  // --- 2. LOGIC VÒNG QUAY (Bản cũ ổn định) ---
+  const handleSpinWheel = () => {
     if (isSpinning) return;
     setWinner(null);
     setIsSpinning(true);
@@ -162,7 +163,6 @@ const App: React.FC = () => {
       
       setWinner(prizes[prizeIndex]);
     }, 4000);
-  };
   };
 
   const handleWheelTitleClick = () => {
