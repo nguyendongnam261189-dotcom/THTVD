@@ -142,7 +142,7 @@ export const PROJECTS: Project[] = [
         coverImage:  "/10.png", // Library
         imageUrl:  "/10.png", // Library
         authors: 'Huỳnh Quốc Khánh',
-        demoUrl: 'https://sites.google.com/view/stemthcsnguyenbinhkhiem/website-th%C6%B0-vi%E1%BB%87n-h%E1%BB%8Dc-li%E1%BB%87u-s%E1%BB%91-v%C3%A0-t%C6%B0%C6%A1ng-t%C3%A1c-li%C3%AAn-m%C3%B4n'
+        demoUrl: 'https://khoahoctunhien.edu.vn/'
     },
     {
         id: '11',
