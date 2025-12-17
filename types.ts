@@ -1,36 +1,51 @@
-export interface Project {
+export type UserRole = 'ADMIN' | 'TEACHER' | 'GUEST';
+
+export interface User {
     id: string;
-    title: string;
-    category: 'Environment' | 'Technology' | 'IT' | 'Math' | 'NaturalScience' | 'SocialScience';
-    group: 'STEM' | 'AI';
+    email: string;
+    name: string;
+    avatar: string;
+    role: UserRole;
+}
+
+export interface Club {
+    id: string;
+    name: string;
     description: string;
+    icon: string; // Lucide icon name or emoji
     coverImage: string;
-    imageUrl: string;
-    authors: string;
-    videoUrl?: string;
-    demoUrl?: string;
+    managerEmail?: string; // Email of the teacher in charge
 }
 
-export interface ScheduleItem {
+export interface SubCategory {
     id: string;
-    time: string;
+    clubId: string;
+    name: string;
+}
+
+export type PostType = 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'LINK';
+
+export interface Post {
+    id: string;
+    clubId: string;
+    subCategoryId?: string; // New field for sub-category
+    userId: string;
+    authorName: string;
+    authorAvatar: string;
+    type: PostType;
     title: string;
-    location: string;
-    description?: string;
-    isHighlight?: boolean;
+    content: string; // Description or text content
+    mediaUrl?: string; // URL for image, video, or doc
+    thumbnailUrl?: string;
+    createdAt: number; // Timestamp
+    likes: number;
 }
 
-export interface ChatMessage {
+export interface Comment {
     id: string;
-    role: 'user' | 'model';
-    text: string;
-    isThinking?: boolean;
-}
-
-export enum AppView {
-    HOME = 'HOME',
-    GALLERY = 'GALLERY',
-    SCHEDULE = 'SCHEDULE',
-    AI_GUIDE = 'AI_GUIDE',
-    ABOUT = 'ABOUT'
+    postId: string;
+    userId: string;
+    userName: string;
+    content: string;
+    createdAt: number;
 }
